@@ -8,3 +8,17 @@
 /captures
 /.idea
 /.gradle
+*.apk
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+local.properties
+proguard/
+# Log Files
+*.log
+.navigation/
+captures/
+/app/build
+/library/build
