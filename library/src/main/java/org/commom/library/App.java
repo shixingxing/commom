@@ -11,28 +11,10 @@ import rx.schedulers.Schedulers;
  */
 public class App extends Application {
 
-    private Scheduler defaultSubscribeScheduler;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-    }
-
-    public static App get(Context context) {
-        return (App) context.getApplicationContext();
-    }
-
-
-    public Scheduler defaultSubscribeScheduler() {
-        if (defaultSubscribeScheduler == null) {
-            defaultSubscribeScheduler = Schedulers.io();
-        }
-        return defaultSubscribeScheduler;
-    }
-
-    //User to change scheduler from tests
-    public void setDefaultSubscribeScheduler(Scheduler scheduler) {
-        this.defaultSubscribeScheduler = scheduler;
     }
 }

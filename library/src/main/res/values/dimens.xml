@@ -1,0 +1,15 @@
+<resources>
+    <dimen name="base_divider_size_small">0.5dip</dimen>
+    <dimen name="base_divider_size">1dip</dimen>
+    <dimen name="padding_tiny">4dip</dimen>
+    <dimen name="padding_small">8dip</dimen>
+    <dimen name="padding_medium">12dip</dimen>
+    <dimen name="padding_large">16dip</dimen>
+    <dimen name="text_size_tiny">12sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">18sp</dimen>
+    <dimen name="base_progress_wheel">90dip</dimen>
+    <dimen name="base_progress_wheel_big">120dip</dimen>
+
+</resources>
