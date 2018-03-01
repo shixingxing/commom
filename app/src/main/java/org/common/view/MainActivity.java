@@ -13,6 +13,7 @@ import org.commom.library.activity.BaseActivity;
 import org.commom.library.view.PickImageActivity;
 import org.common.R;
 import org.common.databinding.ActivityMainBinding;
+import org.common.qrcode.CaptureActivity;
 import org.common.viewmodel.MainViewModel;
 
 public class MainActivity extends BaseActivity implements AdapterView.OnItemClickListener {
@@ -52,6 +53,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
             case 1:
                 break;
             case 2:
+                Intent intentQr = new Intent();
+                intentQr.setClass(MainActivity.this, CaptureActivity.class);
+                startActivity(intentQr);
                 break;
             default:
                 break;
