@@ -55,13 +55,13 @@ public class PickImageViewModel extends MyObservable {
     }
 
     public void onTakeClick(View view) {
-        Intent mIntent = new Intent();
-        mIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+        Intent intent = new Intent();
+        intent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
         long date = Calendar.getInstance().getTimeInMillis();
         currentFilePath = Environment.getExternalStorageDirectory()
                 + File.separator + "DCIM" + File.separator + "Camera" + File.separator + date + ".jpg";
-        mIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(currentFilePath)));
-        ((Activity) context).startActivityForResult(mIntent, REQUEST_CODE_TAKE_PICTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(currentFilePath)));
+        ((Activity) context).startActivityForResult(intent, REQUEST_CODE_TAKE_PICTURE);
 
     }
 
