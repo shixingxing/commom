@@ -3,6 +3,6 @@ package org.commom.library.http;
 /**
  * Created by peter on 2016/3/23.
  */
-public interface BaseHttpSercive {
+public interface BaseHttpService {
 
 }

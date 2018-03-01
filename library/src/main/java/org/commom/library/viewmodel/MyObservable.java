@@ -10,16 +10,13 @@ public class MyObservable extends BaseObservable implements ViewModel {
 
     protected Context context;
 
-    public MyObservable() {
-    }
-
     public MyObservable(Context context) {
         this.context = context;
     }
 
 
     @Override
-    public void destory() {
+    public void destroy() {
         context = null;
     }
 }

@@ -1,6 +1,6 @@
 package org.common.http;
 
-import org.commom.library.http.BaseHttpSercive;
+import org.commom.library.http.BaseHttpService;
 
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 /**
  * Created by peter on 2016/3/28.
  */
-public interface ApiService extends BaseHttpSercive {
+public interface ApiService extends BaseHttpService {
 
 //    @Headers({
 //            "version: 3.0.2",

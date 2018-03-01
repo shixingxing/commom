@@ -22,8 +22,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    lintOptions{
+    lintOptions {
         abortOnError false
+    }
+    dataBinding {
+        enabled = true
     }
 }
 
@@ -33,5 +36,4 @@ dependencies {
     compile project(':library')
     compile 'com.github.florent37:materialtextfield:1.0.1@aar'
     compile 'com.nineoldandroids:library:2.4.0'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 }
