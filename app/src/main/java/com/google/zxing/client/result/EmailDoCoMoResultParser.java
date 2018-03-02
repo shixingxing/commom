@@ -22,15 +22,14 @@ import java.util.regex.Pattern;
 
 /**
  * Implements the "MATMSG" email message entry format.
- *
+ * <p>
  * Supported keys: TO, SUB, BODY
  *
  * @author Sean Owen
  */
 public final class EmailDoCoMoResultParser extends AbstractDoCoMoResultParser {
 
-    private static final Pattern ATEXT_ALPHANUMERIC = Pattern
-            .compile("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+");
+    private static final Pattern ATEXT_ALPHANUMERIC = Pattern.compile("[a-zA-Z0-9@.!#$%&'*+\\-/=?^_`{|}~]+");
 
     @Override
     public EmailAddressParsedResult parse(Result result) {
@@ -53,15 +52,13 @@ public final class EmailDoCoMoResultParser extends AbstractDoCoMoResultParser {
     }
 
     /**
-     * This implements only the most basic checking for an email address's
-     * validity -- that it contains an '@' and contains no characters disallowed
-     * by RFC 2822. This is an overly lenient definition of validity. We want to
-     * generally be lenient here since this class is only intended to
-     * encapsulate what's in a barcode, not "judge" it.
+     * This implements only the most basic checking for an email address's validity -- that it contains
+     * an '@' and contains no characters disallowed by RFC 2822. This is an overly lenient definition of
+     * validity. We want to generally be lenient here since this class is only intended to encapsulate what's
+     * in a barcode, not "judge" it.
      */
     static boolean isBasicallyValidEmailAddress(String email) {
-        return email != null && ATEXT_ALPHANUMERIC.matcher(email).matches()
-                && email.indexOf('@') >= 0;
+        return email != null && ATEXT_ALPHANUMERIC.matcher(email).matches() && email.indexOf('@') >= 0;
     }
 
 }

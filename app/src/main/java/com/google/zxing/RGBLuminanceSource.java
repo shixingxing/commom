@@ -17,8 +17,8 @@
 package com.google.zxing;
 
 /**
- * This class is used to help decode images from files which arrive as RGB data
- * from an ARGB pixel array. It does not support rotation.
+ * This class is used to help decode images from files which arrive as RGB data from
+ * an ARGB pixel array. It does not support rotation.
  *
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Betaminos
@@ -39,31 +39,29 @@ public final class RGBLuminanceSource extends LuminanceSource {
         left = 0;
         top = 0;
 
-        // In order to measure pure decoding speed, we convert the entire image
-        // to a greyscale array
-        // up front, which is the same as the Y channel of the
-        // YUVLuminanceSource in the real app.
-        luminances = new byte[width * height];
-        for (int y = 0; y < height; y++) {
-            int offset = y * width;
-            for (int x = 0; x < width; x++) {
-                int pixel = pixels[offset + x];
-                int r = (pixel >> 16) & 0xff;
-                int g = (pixel >> 8) & 0xff;
-                int b = pixel & 0xff;
-                if (r == g && g == b) {
-                    // Image is already greyscale, so pick any channel.
-                    luminances[offset + x] = (byte) r;
-                } else {
-                    // Calculate luminance cheaply, favoring green.
-                    luminances[offset + x] = (byte) ((r + 2 * g + b) / 4);
-                }
-            }
+        // In order to measure pure decoding speed, we convert the entire image to a greyscale array
+        // up front, which is the same as the Y channel of the YUVLuminanceSource in the real app.
+        //
+        // Total number of pixels suffices, can ignore shape
+        int size = width * height;
+        luminances = new byte[size];
+        for (int offset = 0; offset < size; offset++) {
+            int pixel = pixels[offset];
+            int r = (pixel >> 16) & 0xff; // red
+            int g2 = (pixel >> 7) & 0x1fe; // 2 * green
+            int b = pixel & 0xff; // blue
+            // Calculate green-favouring average cheaply
+            luminances[offset] = (byte) ((r + g2 + b) / 4);
         }
     }
 
-    private RGBLuminanceSource(byte[] pixels, int dataWidth, int dataHeight, int left, int top,
-            int width, int height) {
+    private RGBLuminanceSource(byte[] pixels,
+                               int dataWidth,
+                               int dataHeight,
+                               int left,
+                               int top,
+                               int width,
+                               int height) {
         super(width, height);
         if (left + width > dataWidth || top + height > dataHeight) {
             throw new IllegalArgumentException("Crop rectangle does not fit within image data.");
@@ -94,10 +92,8 @@ public final class RGBLuminanceSource extends LuminanceSource {
         int width = getWidth();
         int height = getHeight();
 
-        // If the caller asks for the entire underlying image, save the copy and
-        // give them the
-        // original data. The docs specifically warn that result.length must be
-        // ignored.
+        // If the caller asks for the entire underlying image, save the copy and give them the
+        // original data. The docs specifically warn that result.length must be ignored.
         if (width == dataWidth && height == dataHeight) {
             return luminances;
         }
@@ -106,18 +102,16 @@ public final class RGBLuminanceSource extends LuminanceSource {
         byte[] matrix = new byte[area];
         int inputOffset = top * dataWidth + left;
 
-        // If the width matches the full width of the underlying data, perform a
-        // single copy.
+        // If the width matches the full width of the underlying data, perform a single copy.
         if (width == dataWidth) {
             System.arraycopy(luminances, inputOffset, matrix, 0, area);
             return matrix;
         }
 
         // Otherwise copy one cropped row at a time.
-        byte[] rgb = luminances;
         for (int y = 0; y < height; y++) {
             int outputOffset = y * width;
-            System.arraycopy(rgb, inputOffset, matrix, outputOffset, width);
+            System.arraycopy(luminances, inputOffset, matrix, outputOffset, width);
             inputOffset += dataWidth;
         }
         return matrix;
@@ -130,8 +124,13 @@ public final class RGBLuminanceSource extends LuminanceSource {
 
     @Override
     public LuminanceSource crop(int left, int top, int width, int height) {
-        return new RGBLuminanceSource(luminances, dataWidth, dataHeight, this.left + left, this.top
-                + top, width, height);
+        return new RGBLuminanceSource(luminances,
+                dataWidth,
+                dataHeight,
+                this.left + left,
+                this.top + top,
+                width,
+                height);
     }
 
 }

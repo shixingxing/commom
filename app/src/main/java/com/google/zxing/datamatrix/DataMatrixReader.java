@@ -50,16 +50,12 @@ public final class DataMatrixReader implements Reader {
      * Locates and decodes a Data Matrix code in an image.
      *
      * @return a String representing the content encoded by the Data Matrix code
-     * @throws NotFoundException
-     *             if a Data Matrix code cannot be found
-     * @throws FormatException
-     *             if a Data Matrix code cannot be decoded
-     * @throws ChecksumException
-     *             if error correction fails
+     * @throws NotFoundException if a Data Matrix code cannot be found
+     * @throws FormatException   if a Data Matrix code cannot be decoded
+     * @throws ChecksumException if error correction fails
      */
     @Override
-    public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException,
-            FormatException {
+    public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
         return decode(image, null);
     }
 
@@ -96,10 +92,10 @@ public final class DataMatrixReader implements Reader {
     }
 
     /**
-     * This method detects a code in a "pure" image -- that is, pure monochrome
-     * image which contains only an unrotated, unskewed, image of a code, with
-     * some white border around it. This is a specialized method that works
-     * exceptionally fast in this special case.
+     * This method detects a code in a "pure" image -- that is, pure monochrome image
+     * which contains only an unrotated, unskewed, image of a code, with some white border
+     * around it. This is a specialized method that works exceptionally fast in this special
+     * case.
      *
      * @see com.google.zxing.qrcode.QRCodeReader#extractPureBits(BitMatrix)
      */

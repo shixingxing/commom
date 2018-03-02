@@ -19,15 +19,10 @@ package com.google.zxing.pdf417.decoder.ec;
 import com.google.zxing.ChecksumException;
 
 /**
+ * <p>PDF417 error correction implementation.</p>
  * <p>
- * PDF417 error correction implementation.
- * </p>
- *
- * <p>
- * This <a href=
- * "http://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction#Example"
- * >example</a> is quite useful in understanding the algorithm.
- * </p>
+ * <p>This <a href="http://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction#Example">example</a>
+ * is quite useful in understanding the algorithm.</p>
  *
  * @author Sean Owen
  * @see com.google.zxing.common.reedsolomon.ReedSolomonDecoder
@@ -41,18 +36,15 @@ public final class ErrorCorrection {
     }
 
     /**
-     * @param received
-     *            received codewords
-     * @param numECCodewords
-     *            number of those codewords used for EC
-     * @param erasures
-     *            location of erasures
+     * @param received       received codewords
+     * @param numECCodewords number of those codewords used for EC
+     * @param erasures       location of erasures
      * @return number of errors
-     * @throws ChecksumException
-     *             if errors cannot be corrected, maybe because of too many
-     *             errors
+     * @throws ChecksumException if errors cannot be corrected, maybe because of too many errors
      */
-    public int decode(int[] received, int numECCodewords, int[] erasures) throws ChecksumException {
+    public int decode(int[] received,
+                      int numECCodewords,
+                      int[] erasures) throws ChecksumException {
 
         ModulusPoly poly = new ModulusPoly(field, received);
         int[] S = new int[numECCodewords];
@@ -74,20 +66,20 @@ public final class ErrorCorrection {
             for (int erasure : erasures) {
                 int b = field.exp(received.length - 1 - erasure);
                 // Add (1 - bx) term:
-                ModulusPoly term = new ModulusPoly(field, new int[] { field.subtract(0, b), 1 });
+                ModulusPoly term = new ModulusPoly(field, new int[]{field.subtract(0, b), 1});
                 knownErrors = knownErrors.multiply(term);
             }
         }
 
         ModulusPoly syndrome = new ModulusPoly(field, S);
-        // syndrome = syndrome.multiply(knownErrors);
+        //syndrome = syndrome.multiply(knownErrors);
 
-        ModulusPoly[] sigmaOmega = runEuclideanAlgorithm(field.buildMonomial(numECCodewords, 1),
-                syndrome, numECCodewords);
+        ModulusPoly[] sigmaOmega =
+                runEuclideanAlgorithm(field.buildMonomial(numECCodewords, 1), syndrome, numECCodewords);
         ModulusPoly sigma = sigmaOmega[0];
         ModulusPoly omega = sigmaOmega[1];
 
-        // sigma = sigma.multiply(knownErrors);
+        //sigma = sigma.multiply(knownErrors);
 
         int[] errorLocations = findErrorLocations(sigma);
         int[] errorMagnitudes = findErrorMagnitudes(omega, sigma, errorLocations);
@@ -150,7 +142,7 @@ public final class ErrorCorrection {
         int inverse = field.inverse(sigmaTildeAtZero);
         ModulusPoly sigma = t.multiply(inverse);
         ModulusPoly omega = r.multiply(inverse);
-        return new ModulusPoly[] { sigma, omega };
+        return new ModulusPoly[]{sigma, omega};
     }
 
     private int[] findErrorLocations(ModulusPoly errorLocator) throws ChecksumException {
@@ -170,13 +162,14 @@ public final class ErrorCorrection {
         return result;
     }
 
-    private int[] findErrorMagnitudes(ModulusPoly errorEvaluator, ModulusPoly errorLocator,
-            int[] errorLocations) {
+    private int[] findErrorMagnitudes(ModulusPoly errorEvaluator,
+                                      ModulusPoly errorLocator,
+                                      int[] errorLocations) {
         int errorLocatorDegree = errorLocator.getDegree();
         int[] formalDerivativeCoefficients = new int[errorLocatorDegree];
         for (int i = 1; i <= errorLocatorDegree; i++) {
-            formalDerivativeCoefficients[errorLocatorDegree - i] = field.multiply(i,
-                    errorLocator.getCoefficient(i));
+            formalDerivativeCoefficients[errorLocatorDegree - i] =
+                    field.multiply(i, errorLocator.getCoefficient(i));
         }
         ModulusPoly formalDerivative = new ModulusPoly(field, formalDerivativeCoefficients);
 

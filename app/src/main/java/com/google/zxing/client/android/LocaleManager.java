@@ -38,10 +38,11 @@ public final class LocaleManager {
     private static final String DEFAULT_LANGUAGE = "en";
 
     /**
-     * Locales (well, countries) where Google web search is available. These
-     * should be kept in sync with our translations.
+     * Locales (well, countries) where Google web search is available.
+     * These should be kept in sync with our translations.
      */
     private static final Map<String, String> GOOGLE_COUNTRY_TLD;
+
     static {
         GOOGLE_COUNTRY_TLD = new HashMap<>();
         GOOGLE_COUNTRY_TLD.put("AR", "com.ar"); // ARGENTINA
@@ -74,21 +75,21 @@ public final class LocaleManager {
         GOOGLE_COUNTRY_TLD.put("CH", "ch"); // SWITZERLAND
         GOOGLE_COUNTRY_TLD.put(Locale.TAIWAN.getCountry(), "tw");
         GOOGLE_COUNTRY_TLD.put("TR", "com.tr"); // TURKEY
+        GOOGLE_COUNTRY_TLD.put("UA", "com.ua"); // UKRAINE
         GOOGLE_COUNTRY_TLD.put(Locale.UK.getCountry(), "co.uk");
         GOOGLE_COUNTRY_TLD.put(Locale.US.getCountry(), "com");
     }
 
     /**
-     * Google Product Search for mobile is available in fewer countries than web
-     * search. See here:
+     * Google Product Search for mobile is available in fewer countries than web search. See here:
      * http://support.google.com/merchants/bin/answer.py?hl=en-GB&answer=160619
      */
     private static final Map<String, String> GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD;
+
     static {
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD = new HashMap<>();
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put("AU", "com.au"); // AUSTRALIA
-        // GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put(Locale.CHINA.getCountry(),
-        // "cn");
+        //GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put(Locale.CHINA.getCountry(), "cn");
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put(Locale.FRANCE.getCountry(), "fr");
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put(Locale.GERMANY.getCountry(), "de");
         GOOGLE_PRODUCT_SEARCH_COUNTRY_TLD.put(Locale.ITALY.getCountry(), "it");
@@ -105,17 +106,16 @@ public final class LocaleManager {
      */
     private static final Map<String, String> GOOGLE_BOOK_SEARCH_COUNTRY_TLD = GOOGLE_COUNTRY_TLD;
 
-    private static final Collection<String> TRANSLATED_HELP_ASSET_LANGUAGES = Arrays.asList("de",
-            "en", "es", "fr", "it", "ja", "ko", "nl", "pt", "ru", "zh-rCN", "zh-rTW", "zh-rHK");
+    private static final Collection<String> TRANSLATED_HELP_ASSET_LANGUAGES =
+            Arrays.asList("de", "en", "es", "fa", "fr", "it", "ja", "ko", "nl", "pt", "ru", "uk", "zh-rCN", "zh");
 
     private LocaleManager() {
     }
 
     /**
-     * @param context
-     *            application's {@link Context}
-     * @return country-specific TLD suffix appropriate for the current default
-     *         locale (e.g. "co.uk" for the United Kingdom)
+     * @param context application's {@link Context}
+     * @return country-specific TLD suffix appropriate for the current default locale
+     * (e.g. "co.uk" for the United Kingdom)
      */
     public static String getCountryTLD(Context context) {
         return doGetTLD(GOOGLE_COUNTRY_TLD, context);
@@ -124,8 +124,7 @@ public final class LocaleManager {
     /**
      * The same as above, but specifically for Google Product Search.
      *
-     * @param context
-     *            application's {@link Context}
+     * @param context application's {@link Context}
      * @return The top-level domain to use.
      */
     public static String getProductSearchCountryTLD(Context context) {
@@ -135,8 +134,7 @@ public final class LocaleManager {
     /**
      * The same as above, but specifically for Google Book Search.
      *
-     * @param context
-     *            application's {@link Context}
+     * @param context application's {@link Context}
      * @return The top-level domain to use.
      */
     public static String getBookSearchCountryTLD(Context context) {
@@ -146,8 +144,7 @@ public final class LocaleManager {
     /**
      * Does a given URL point to Google Book Search, regardless of domain.
      *
-     * @param url
-     *            The address to check.
+     * @param url The address to check.
      * @return True if this is a Book Search URL.
      */
     public static boolean isBookSearchUrl(String url) {
@@ -164,15 +161,14 @@ public final class LocaleManager {
         if (locale == null) {
             return DEFAULT_LANGUAGE;
         }
-        String language = locale.getLanguage();
         // Special case Chinese
-        if (Locale.SIMPLIFIED_CHINESE.getLanguage().equals(language)) {
-            return language + "-r" + getSystemCountry();
+        if (Locale.SIMPLIFIED_CHINESE.equals(locale)) {
+            return "zh-rCN";
         }
-        return language;
+        return locale.getLanguage();
     }
 
-    public static String getTranslatedAssetLanguage() {
+    static String getTranslatedAssetLanguage() {
         String language = getSystemLanguage();
         return TRANSLATED_HELP_ASSET_LANGUAGES.contains(language) ? language : DEFAULT_LANGUAGE;
     }
@@ -182,7 +178,7 @@ public final class LocaleManager {
         return tld == null ? DEFAULT_TLD : tld;
     }
 
-    public static String getCountry(Context context) {
+    private static String getCountry(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String countryOverride = prefs.getString(PreferencesActivity.KEY_SEARCH_COUNTRY, "-");
         if (countryOverride != null && !countryOverride.isEmpty() && !"-".equals(countryOverride)) {

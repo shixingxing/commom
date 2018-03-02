@@ -33,10 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>
- * Encapsulates logic that can detect a Data Matrix Code in an image, even if
- * the Data Matrix Code is rotated or skewed, or partially obscured.
- * </p>
+ * <p>Encapsulates logic that can detect a Data Matrix Code in an image, even if the Data Matrix Code
+ * is rotated or skewed, or partially obscured.</p>
  *
  * @author Sean Owen
  */
@@ -51,14 +49,10 @@ public final class Detector {
     }
 
     /**
-     * <p>
-     * Detects a Data Matrix Code in an image.
-     * </p>
+     * <p>Detects a Data Matrix Code in an image.</p>
      *
-     * @return {@link DetectorResult} encapsulating results of detecting a Data
-     *         Matrix Code
-     * @throws NotFoundException
-     *             if no Data Matrix Code can be found
+     * @return {@link DetectorResult} encapsulating results of detecting a Data Matrix Code
+     * @throws NotFoundException if no Data Matrix Code can be found
      */
     public DetectorResult detect() throws NotFoundException {
 
@@ -78,14 +72,12 @@ public final class Detector {
         transitions.add(transitionsBetween(pointC, pointD));
         Collections.sort(transitions, new ResultPointsAndTransitionsComparator());
 
-        // Sort by number of transitions. First two will be the two solid sides;
-        // last two
+        // Sort by number of transitions. First two will be the two solid sides; last two
         // will be the two alternating black/white sides
         ResultPointsAndTransitions lSideOne = transitions.get(0);
         ResultPointsAndTransitions lSideTwo = transitions.get(1);
 
-        // Figure out which point is their intersection by tallying up the
-        // number of times we see the
+        // Figure out which point is their intersection by tallying up the number of times we see the
         // endpoints in the four endpoints. One will show up twice.
         Map<ResultPoint, Integer> pointCount = new HashMap<>();
         increment(pointCount, lSideOne.getFrom());
@@ -100,11 +92,9 @@ public final class Detector {
             ResultPoint point = entry.getKey();
             Integer value = entry.getValue();
             if (value == 2) {
-                bottomLeft = point; // this is definitely the bottom left, then
-                                    // -- end of two L sides
+                bottomLeft = point; // this is definitely the bottom left, then -- end of two L sides
             } else {
-                // Otherwise it's either top left or bottom right -- just assign
-                // the two arbitrarily now
+                // Otherwise it's either top left or bottom right -- just assign the two arbitrarily now
                 if (maybeTopLeft == null) {
                     maybeTopLeft = point;
                 } else {
@@ -117,9 +107,8 @@ public final class Detector {
             throw NotFoundException.getNotFoundInstance();
         }
 
-        // Bottom left is correct but top left and bottom right might be
-        // switched
-        ResultPoint[] corners = { maybeTopLeft, bottomLeft, maybeBottomRight };
+        // Bottom left is correct but top left and bottom right might be switched
+        ResultPoint[] corners = {maybeTopLeft, bottomLeft, maybeBottomRight};
         // Use the dot product trick to sort them out
         ResultPoint.orderBestPatterns(corners);
 
@@ -128,8 +117,7 @@ public final class Detector {
         bottomLeft = corners[1];
         ResultPoint topLeft = corners[2];
 
-        // Which point didn't we find in relation to the "L" sides? that's the
-        // top right corner
+        // Which point didn't we find in relation to the "L" sides? that's the top right corner
         ResultPoint topRight;
         if (!pointCount.containsKey(pointA)) {
             topRight = pointA;
@@ -141,18 +129,13 @@ public final class Detector {
             topRight = pointD;
         }
 
-        // Next determine the dimension by tracing along the top or right side
-        // and counting black/white
-        // transitions. Since we start inside a black module, we should see a
-        // number of transitions
-        // equal to 1 less than the code dimension. Well, actually 2 less,
-        // because we are going to
+        // Next determine the dimension by tracing along the top or right side and counting black/white
+        // transitions. Since we start inside a black module, we should see a number of transitions
+        // equal to 1 less than the code dimension. Well, actually 2 less, because we are going to
         // end on a black module:
 
-        // The top right point is actually the corner of a module, which is one
-        // of the two black modules
-        // adjacent to the white module at the top right. Tracing to that corner
-        // from either the top left
+        // The top right point is actually the corner of a module, which is one of the two black modules
+        // adjacent to the white module at the top right. Tracing to that corner from either the top left
         // or bottom right should work here.
 
         int dimensionTop = transitionsBetween(topLeft, topRight).getTransitions();
@@ -173,16 +156,14 @@ public final class Detector {
         BitMatrix bits;
         ResultPoint correctedTopRight;
 
-        // Rectanguar symbols are 6x16, 6x28, 10x24, 10x32, 14x32, or 14x44. If
-        // one dimension is more
-        // than twice the other, it's certainly rectangular, but to cut a bit
-        // more slack we accept it as
+        // Rectangular symbols are 6x16, 6x28, 10x24, 10x32, 14x32, or 14x44. If one dimension is more
+        // than twice the other, it's certainly rectangular, but to cut a bit more slack we accept it as
         // rectangular if the bigger side is at least 7/4 times the other:
         if (4 * dimensionTop >= 7 * dimensionRight || 4 * dimensionRight >= 7 * dimensionTop) {
             // The matrix is rectangular
 
-            correctedTopRight = correctTopRightRectangular(bottomLeft, bottomRight, topLeft,
-                    topRight, dimensionTop, dimensionRight);
+            correctedTopRight =
+                    correctTopRightRectangular(bottomLeft, bottomRight, topLeft, topRight, dimensionTop, dimensionRight);
             if (correctedTopRight == null) {
                 correctedTopRight = topRight;
             }
@@ -200,43 +181,48 @@ public final class Detector {
                 dimensionRight++;
             }
 
-            bits = sampleGrid(image, topLeft, bottomLeft, bottomRight, correctedTopRight,
-                    dimensionTop, dimensionRight);
+            bits = sampleGrid(image, topLeft, bottomLeft, bottomRight, correctedTopRight, dimensionTop, dimensionRight);
 
         } else {
             // The matrix is square
 
             int dimension = Math.min(dimensionRight, dimensionTop);
             // correct top right point to match the white module
-            correctedTopRight = correctTopRight(bottomLeft, bottomRight, topLeft, topRight,
-                    dimension);
+            correctedTopRight = correctTopRight(bottomLeft, bottomRight, topLeft, topRight, dimension);
             if (correctedTopRight == null) {
                 correctedTopRight = topRight;
             }
 
             // Redetermine the dimension using the corrected top right point
-            int dimensionCorrected = Math.max(transitionsBetween(topLeft, correctedTopRight)
-                    .getTransitions(), transitionsBetween(bottomRight, correctedTopRight)
-                    .getTransitions());
+            int dimensionCorrected = Math.max(transitionsBetween(topLeft, correctedTopRight).getTransitions(),
+                    transitionsBetween(bottomRight, correctedTopRight).getTransitions());
             dimensionCorrected++;
             if ((dimensionCorrected & 0x01) == 1) {
                 dimensionCorrected++;
             }
 
-            bits = sampleGrid(image, topLeft, bottomLeft, bottomRight, correctedTopRight,
-                    dimensionCorrected, dimensionCorrected);
+            bits = sampleGrid(image,
+                    topLeft,
+                    bottomLeft,
+                    bottomRight,
+                    correctedTopRight,
+                    dimensionCorrected,
+                    dimensionCorrected);
         }
 
-        return new DetectorResult(bits, new ResultPoint[] { topLeft, bottomLeft, bottomRight,
-                correctedTopRight });
+        return new DetectorResult(bits, new ResultPoint[]{topLeft, bottomLeft, bottomRight, correctedTopRight});
     }
 
     /**
-     * Calculates the position of the white top right module using the output of
-     * the rectangle detector for a rectangular matrix
+     * Calculates the position of the white top right module using the output of the rectangle detector
+     * for a rectangular matrix
      */
-    private ResultPoint correctTopRightRectangular(ResultPoint bottomLeft, ResultPoint bottomRight,
-            ResultPoint topLeft, ResultPoint topRight, int dimensionTop, int dimensionRight) {
+    private ResultPoint correctTopRightRectangular(ResultPoint bottomLeft,
+                                                   ResultPoint bottomRight,
+                                                   ResultPoint topLeft,
+                                                   ResultPoint topRight,
+                                                   int dimensionTop,
+                                                   int dimensionRight) {
 
         float corr = distance(bottomLeft, bottomRight) / (float) dimensionTop;
         int norm = distance(topLeft, topRight);
@@ -262,10 +248,10 @@ public final class Detector {
             return c1;
         }
 
-        int l1 = Math.abs(dimensionTop - transitionsBetween(topLeft, c1).getTransitions())
-                + Math.abs(dimensionRight - transitionsBetween(bottomRight, c1).getTransitions());
-        int l2 = Math.abs(dimensionTop - transitionsBetween(topLeft, c2).getTransitions())
-                + Math.abs(dimensionRight - transitionsBetween(bottomRight, c2).getTransitions());
+        int l1 = Math.abs(dimensionTop - transitionsBetween(topLeft, c1).getTransitions()) +
+                Math.abs(dimensionRight - transitionsBetween(bottomRight, c1).getTransitions());
+        int l2 = Math.abs(dimensionTop - transitionsBetween(topLeft, c2).getTransitions()) +
+                Math.abs(dimensionRight - transitionsBetween(bottomRight, c2).getTransitions());
 
         if (l1 <= l2) {
             return c1;
@@ -275,11 +261,14 @@ public final class Detector {
     }
 
     /**
-     * Calculates the position of the white top right module using the output of
-     * the rectangle detector for a square matrix
+     * Calculates the position of the white top right module using the output of the rectangle detector
+     * for a square matrix
      */
-    private ResultPoint correctTopRight(ResultPoint bottomLeft, ResultPoint bottomRight,
-            ResultPoint topLeft, ResultPoint topRight, int dimension) {
+    private ResultPoint correctTopRight(ResultPoint bottomLeft,
+                                        ResultPoint bottomRight,
+                                        ResultPoint topLeft,
+                                        ResultPoint topRight,
+                                        int dimension) {
 
         float corr = distance(bottomLeft, bottomRight) / (float) dimension;
         int norm = distance(topLeft, topRight);
@@ -305,17 +294,16 @@ public final class Detector {
             return c1;
         }
 
-        int l1 = Math.abs(transitionsBetween(topLeft, c1).getTransitions()
-                - transitionsBetween(bottomRight, c1).getTransitions());
-        int l2 = Math.abs(transitionsBetween(topLeft, c2).getTransitions()
-                - transitionsBetween(bottomRight, c2).getTransitions());
+        int l1 = Math.abs(transitionsBetween(topLeft, c1).getTransitions() -
+                transitionsBetween(bottomRight, c1).getTransitions());
+        int l2 = Math.abs(transitionsBetween(topLeft, c2).getTransitions() -
+                transitionsBetween(bottomRight, c2).getTransitions());
 
         return l1 <= l2 ? c1 : c2;
     }
 
     private boolean isValid(ResultPoint p) {
-        return p.getX() >= 0 && p.getX() < image.getWidth() && p.getY() > 0
-                && p.getY() < image.getHeight();
+        return p.getX() >= 0 && p.getX() < image.getWidth() && p.getY() > 0 && p.getY() < image.getHeight();
     }
 
     private static int distance(ResultPoint a, ResultPoint b) {
@@ -330,21 +318,39 @@ public final class Detector {
         table.put(key, value == null ? 1 : value + 1);
     }
 
-    private static BitMatrix sampleGrid(BitMatrix image, ResultPoint topLeft,
-            ResultPoint bottomLeft, ResultPoint bottomRight, ResultPoint topRight, int dimensionX,
-            int dimensionY) throws NotFoundException {
+    private static BitMatrix sampleGrid(BitMatrix image,
+                                        ResultPoint topLeft,
+                                        ResultPoint bottomLeft,
+                                        ResultPoint bottomRight,
+                                        ResultPoint topRight,
+                                        int dimensionX,
+                                        int dimensionY) throws NotFoundException {
 
         GridSampler sampler = GridSampler.getInstance();
 
-        return sampler.sampleGrid(image, dimensionX, dimensionY, 0.5f, 0.5f, dimensionX - 0.5f,
-                0.5f, dimensionX - 0.5f, dimensionY - 0.5f, 0.5f, dimensionY - 0.5f,
-                topLeft.getX(), topLeft.getY(), topRight.getX(), topRight.getY(),
-                bottomRight.getX(), bottomRight.getY(), bottomLeft.getX(), bottomLeft.getY());
+        return sampler.sampleGrid(image,
+                dimensionX,
+                dimensionY,
+                0.5f,
+                0.5f,
+                dimensionX - 0.5f,
+                0.5f,
+                dimensionX - 0.5f,
+                dimensionY - 0.5f,
+                0.5f,
+                dimensionY - 0.5f,
+                topLeft.getX(),
+                topLeft.getY(),
+                topRight.getX(),
+                topRight.getY(),
+                bottomRight.getX(),
+                bottomRight.getY(),
+                bottomLeft.getX(),
+                bottomLeft.getY());
     }
 
     /**
-     * Counts the number of black/white transitions between two points, using
-     * something like Bresenham's algorithm.
+     * Counts the number of black/white transitions between two points, using something like Bresenham's algorithm.
      */
     private ResultPointsAndTransitions transitionsBetween(ResultPoint from, ResultPoint to) {
         // See QR Code Detector, sizeOfBlackWhiteBlackRun()
@@ -410,7 +416,7 @@ public final class Detector {
             return to;
         }
 
-        public int getTransitions() {
+        int getTransitions() {
             return transitions;
         }
 
@@ -423,8 +429,8 @@ public final class Detector {
     /**
      * Orders ResultPointsAndTransitions by number of transitions, ascending.
      */
-    private static final class ResultPointsAndTransitionsComparator implements
-            Comparator<ResultPointsAndTransitions>, Serializable {
+    private static final class ResultPointsAndTransitionsComparator
+            implements Comparator<ResultPointsAndTransitions>, Serializable {
         @Override
         public int compare(ResultPointsAndTransitions o1, ResultPointsAndTransitions o2) {
             return o1.getTransitions() - o2.getTransitions();

@@ -27,8 +27,7 @@ final class BarcodeMetadata {
     private final int rowCountLowerPart;
     private final int rowCount;
 
-    BarcodeMetadata(int columnCount, int rowCountUpperPart, int rowCountLowerPart,
-            int errorCorrectionLevel) {
+    BarcodeMetadata(int columnCount, int rowCountUpperPart, int rowCountLowerPart, int errorCorrectionLevel) {
         this.columnCount = columnCount;
         this.errorCorrectionLevel = errorCorrectionLevel;
         this.rowCountUpperPart = rowCountUpperPart;

@@ -21,9 +21,7 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.common.BitArray;
 
 /**
- * <p>
- * Implements decoding of the EAN-8 format.
- * </p>
+ * <p>Implements decoding of the EAN-8 format.</p>
  *
  * @author Sean Owen
  */
@@ -36,8 +34,9 @@ public final class EAN8Reader extends UPCEANReader {
     }
 
     @Override
-    protected int decodeMiddle(BitArray row, int[] startRange, StringBuilder result)
-            throws NotFoundException {
+    protected int decodeMiddle(BitArray row,
+                               int[] startRange,
+                               StringBuilder result) throws NotFoundException {
         int[] counters = decodeMiddleCounters;
         counters[0] = 0;
         counters[1] = 0;

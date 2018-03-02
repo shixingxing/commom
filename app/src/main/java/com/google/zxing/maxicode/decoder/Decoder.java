@@ -28,10 +28,8 @@ import com.google.zxing.common.reedsolomon.ReedSolomonException;
 import java.util.Map;
 
 /**
- * <p>
- * The main class which implements MaxiCode decoding -- as opposed to locating
- * and extracting the MaxiCode from an image.
- * </p>
+ * <p>The main class which implements MaxiCode decoding -- as opposed to locating and extracting
+ * the MaxiCode from an image.</p>
  *
  * @author Manuel Kasten
  */
@@ -51,8 +49,8 @@ public final class Decoder {
         return decode(bits, null);
     }
 
-    public DecoderResult decode(BitMatrix bits, Map<DecodeHintType, ?> hints)
-            throws FormatException, ChecksumException {
+    public DecoderResult decode(BitMatrix bits,
+                                Map<DecodeHintType, ?> hints) throws FormatException, ChecksumException {
         BitMatrixParser parser = new BitMatrixParser(bits);
         byte[] codewords = parser.readCodewords();
 
@@ -60,20 +58,20 @@ public final class Decoder {
         int mode = codewords[0] & 0x0F;
         byte[] datawords;
         switch (mode) {
-        case 2:
-        case 3:
-        case 4:
-            correctErrors(codewords, 20, 84, 40, EVEN);
-            correctErrors(codewords, 20, 84, 40, ODD);
-            datawords = new byte[94];
-            break;
-        case 5:
-            correctErrors(codewords, 20, 68, 56, EVEN);
-            correctErrors(codewords, 20, 68, 56, ODD);
-            datawords = new byte[78];
-            break;
-        default:
-            throw FormatException.getFormatInstance();
+            case 2:
+            case 3:
+            case 4:
+                correctErrors(codewords, 20, 84, 40, EVEN);
+                correctErrors(codewords, 20, 84, 40, ODD);
+                datawords = new byte[94];
+                break;
+            case 5:
+                correctErrors(codewords, 20, 68, 56, EVEN);
+                correctErrors(codewords, 20, 68, 56, ODD);
+                datawords = new byte[78];
+                break;
+            default:
+                throw FormatException.getFormatInstance();
         }
 
         System.arraycopy(codewords, 0, datawords, 0, 10);
@@ -82,8 +80,11 @@ public final class Decoder {
         return DecodedBitStreamParser.decode(datawords, mode);
     }
 
-    private void correctErrors(byte[] codewordBytes, int start, int dataCodewords, int ecCodewords,
-            int mode) throws ChecksumException {
+    private void correctErrors(byte[] codewordBytes,
+                               int start,
+                               int dataCodewords,
+                               int ecCodewords,
+                               int mode) throws ChecksumException {
         int codewords = dataCodewords + ecCodewords;
 
         // in EVEN or ODD mode only half the codewords
@@ -101,8 +102,7 @@ public final class Decoder {
         } catch (ReedSolomonException ignored) {
             throw ChecksumException.getChecksumInstance();
         }
-        // Copy back into array of bytes -- only need to worry about the bytes
-        // that were data
+        // Copy back into array of bytes -- only need to worry about the bytes that were data
         // We don't care about errors in the error-correction codewords
         for (int i = 0; i < dataCodewords; i++) {
             if ((mode == ALL) || (i % 2 == (mode - 1))) {

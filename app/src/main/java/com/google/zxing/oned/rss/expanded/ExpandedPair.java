@@ -39,8 +39,10 @@ final class ExpandedPair {
     private final DataCharacter rightChar;
     private final FinderPattern finderPattern;
 
-    ExpandedPair(DataCharacter leftChar, DataCharacter rightChar, FinderPattern finderPattern,
-            boolean mayBeLast) {
+    ExpandedPair(DataCharacter leftChar,
+                 DataCharacter rightChar,
+                 FinderPattern finderPattern,
+                 boolean mayBeLast) {
         this.leftChar = leftChar;
         this.rightChar = rightChar;
         this.finderPattern = finderPattern;
@@ -69,8 +71,9 @@ final class ExpandedPair {
 
     @Override
     public String toString() {
-        return "[ " + leftChar + " , " + rightChar + " : "
-                + (finderPattern == null ? "null" : finderPattern.getValue()) + " ]";
+        return
+                "[ " + leftChar + " , " + rightChar + " : " +
+                        (finderPattern == null ? "null" : finderPattern.getValue()) + " ]";
     }
 
     @Override
@@ -79,8 +82,10 @@ final class ExpandedPair {
             return false;
         }
         ExpandedPair that = (ExpandedPair) o;
-        return equalsOrNull(leftChar, that.leftChar) && equalsOrNull(rightChar, that.rightChar)
-                && equalsOrNull(finderPattern, that.finderPattern);
+        return
+                equalsOrNull(leftChar, that.leftChar) &&
+                        equalsOrNull(rightChar, that.rightChar) &&
+                        equalsOrNull(finderPattern, that.finderPattern);
     }
 
     private static boolean equalsOrNull(Object o1, Object o2) {

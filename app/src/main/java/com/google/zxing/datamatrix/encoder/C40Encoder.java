@@ -25,7 +25,7 @@ class C40Encoder implements Encoder {
 
     @Override
     public void encode(EncoderContext context) {
-        // step C
+        //step C
         StringBuilder buffer = new StringBuilder();
         while (context.hasMoreCharacters()) {
             char c = context.getCurrentChar();
@@ -40,12 +40,10 @@ class C40Encoder implements Encoder {
             int available = context.getSymbolInfo().getDataCapacity() - curCodewordCount;
 
             if (!context.hasMoreCharacters()) {
-                // Avoid having a single C40 value in the last triplet
+                //Avoid having a single C40 value in the last triplet
                 StringBuilder removed = new StringBuilder();
-                if ((buffer.length() % 3) == 2) {
-                    if (available < 2 || available > 2) {
-                        lastCharSize = backtrackOneCharacter(context, buffer, removed, lastCharSize);
-                    }
+                if ((buffer.length() % 3) == 2 && (available < 2 || available > 2)) {
+                    lastCharSize = backtrackOneCharacter(context, buffer, removed, lastCharSize);
                 }
                 while ((buffer.length() % 3) == 1
                         && ((lastCharSize <= 3 && available != 1) || lastCharSize > 3)) {
@@ -56,10 +54,10 @@ class C40Encoder implements Encoder {
 
             int count = buffer.length();
             if ((count % 3) == 0) {
-                int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos,
-                        getEncodingMode());
+                int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos, getEncodingMode());
                 if (newMode != getEncodingMode()) {
-                    context.signalEncoderChange(newMode);
+                    // Return to ASCII encodation, which will actually handle latch to new mode
+                    context.signalEncoderChange(HighLevelEncoder.ASCII_ENCODATION);
                     break;
                 }
             }
@@ -67,15 +65,14 @@ class C40Encoder implements Encoder {
         handleEOD(context, buffer);
     }
 
-    private int backtrackOneCharacter(EncoderContext context, StringBuilder buffer,
-            StringBuilder removed, int lastCharSize) {
+    private int backtrackOneCharacter(EncoderContext context,
+                                      StringBuilder buffer, StringBuilder removed, int lastCharSize) {
         int count = buffer.length();
         buffer.delete(count - lastCharSize, count);
         context.pos--;
         char c = context.getCurrentChar();
         lastCharSize = encodeChar(c, removed);
-        context.resetSymbolInfo(); // Deal with possible reduction in symbol
-                                   // size
+        context.resetSymbolInfo(); //Deal with possible reduction in symbol size
         return lastCharSize;
     }
 
@@ -87,10 +84,8 @@ class C40Encoder implements Encoder {
     /**
      * Handle "end of data" situations
      *
-     * @param context
-     *            the encoder context
-     * @param buffer
-     *            the buffer with the remaining encoded characters
+     * @param context the encoder context
+     * @param buffer  the buffer with the remaining encoded characters
      */
     void handleEOD(EncoderContext context, StringBuilder buffer) {
         int unwritten = (buffer.length() / 3) * 2;
@@ -101,7 +96,7 @@ class C40Encoder implements Encoder {
         int available = context.getSymbolInfo().getDataCapacity() - curCodewordCount;
 
         if (rest == 2) {
-            buffer.append('\0'); // Shift 1
+            buffer.append('\0'); //Shift 1
             while (buffer.length() >= 3) {
                 writeNextTriplet(context, buffer);
             }
@@ -141,27 +136,27 @@ class C40Encoder implements Encoder {
             sb.append((char) (c - 65 + 14));
             return 1;
         } else if (c >= '\0' && c <= '\u001f') {
-            sb.append('\0'); // Shift 1 Set
+            sb.append('\0'); //Shift 1 Set
             sb.append(c);
             return 2;
         } else if (c >= '!' && c <= '/') {
-            sb.append('\1'); // Shift 2 Set
+            sb.append('\1'); //Shift 2 Set
             sb.append((char) (c - 33));
             return 2;
         } else if (c >= ':' && c <= '@') {
-            sb.append('\1'); // Shift 2 Set
+            sb.append('\1'); //Shift 2 Set
             sb.append((char) (c - 58 + 15));
             return 2;
         } else if (c >= '[' && c <= '_') {
-            sb.append('\1'); // Shift 2 Set
+            sb.append('\1'); //Shift 2 Set
             sb.append((char) (c - 91 + 22));
             return 2;
         } else if (c >= '\u0060' && c <= '\u007f') {
-            sb.append('\2'); // Shift 3 Set
+            sb.append('\2'); //Shift 3 Set
             sb.append((char) (c - 96));
             return 2;
         } else if (c >= '\u0080') {
-            sb.append("\1\u001e"); // Shift 2, Upper Shift
+            sb.append("\1\u001e"); //Shift 2, Upper Shift
             int len = 2;
             len += encodeChar((char) (c - 128), sb);
             return len;
@@ -177,7 +172,7 @@ class C40Encoder implements Encoder {
         int v = (1600 * c1) + (40 * c2) + c3 + 1;
         char cw1 = (char) (v / 256);
         char cw2 = (char) (v % 256);
-        return new String(new char[] { cw1, cw2 });
+        return new String(new char[]{cw1, cw2});
     }
 
 }

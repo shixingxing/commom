@@ -52,37 +52,32 @@ final class DecodeHandler extends Handler {
 
     @Override
     public void handleMessage(Message message) {
-        if (!running) {
+        if (message == null || !running) {
             return;
         }
         switch (message.what) {
-        case R.id.decode:
-            decode((byte[]) message.obj, message.arg1, message.arg2);
-            break;
-        case R.id.quit:
-            running = false;
-            Looper.myLooper().quit();
-            break;
+            case R.id.decode:
+                decode((byte[]) message.obj, message.arg1, message.arg2);
+                break;
+            case R.id.quit:
+                running = false;
+                Looper.myLooper().quit();
+                break;
         }
     }
 
     /**
-     * Decode the data within the viewfinder rectangle, and time how long it
-     * took. For efficiency, reuse the same reader objects from one decode to
-     * the next.
+     * Decode the data within the viewfinder rectangle, and time how long it took. For efficiency,
+     * reuse the same reader objects from one decode to the next.
      *
-     * @param data
-     *            The YUV preview frame.
-     * @param width
-     *            The width of the preview frame.
-     * @param height
-     *            The height of the preview frame.
+     * @param data   The YUV preview frame.
+     * @param width  The width of the preview frame.
+     * @param height The height of the preview frame.
      */
     private void decode(byte[] data, int width, int height) {
         long start = System.currentTimeMillis();
         Result rawResult = null;
-        PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data,
-                width, height);
+        PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
         if (source != null) {
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
             try {
@@ -118,8 +113,7 @@ final class DecodeHandler extends Handler {
         int[] pixels = source.renderThumbnail();
         int width = source.getThumbnailWidth();
         int height = source.getThumbnailHeight();
-        Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height,
-                Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
         bundle.putByteArray(DecodeThread.BARCODE_BITMAP, out.toByteArray());

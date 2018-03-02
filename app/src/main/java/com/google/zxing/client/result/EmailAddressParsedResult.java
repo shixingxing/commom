@@ -17,6 +17,9 @@
 package com.google.zxing.client.result;
 
 /**
+ * Represents a parsed result that encodes an email message including recipients, subject
+ * and body text.
+ *
  * @author Sean Owen
  */
 public final class EmailAddressParsedResult extends ParsedResult {
@@ -28,10 +31,14 @@ public final class EmailAddressParsedResult extends ParsedResult {
     private final String body;
 
     EmailAddressParsedResult(String to) {
-        this(new String[] { to }, null, null, null, null);
+        this(new String[]{to}, null, null, null, null);
     }
 
-    EmailAddressParsedResult(String[] tos, String[] ccs, String[] bccs, String subject, String body) {
+    EmailAddressParsedResult(String[] tos,
+                             String[] ccs,
+                             String[] bccs,
+                             String subject,
+                             String body) {
         super(ParsedResultType.EMAIL_ADDRESS);
         this.tos = tos;
         this.ccs = ccs;

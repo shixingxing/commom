@@ -20,7 +20,7 @@ import com.google.zxing.common.BitMatrix;
 
 /**
  * Aztec 2D code representation
- * 
+ *
  * @author Rustam Abdullaev
  */
 public final class AztecCode {

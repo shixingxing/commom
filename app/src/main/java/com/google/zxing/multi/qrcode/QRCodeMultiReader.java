@@ -56,23 +56,19 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
     }
 
     @Override
-    public Result[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType, ?> hints)
-            throws NotFoundException {
+    public Result[] decodeMultiple(BinaryBitmap image, Map<DecodeHintType, ?> hints) throws NotFoundException {
         List<Result> results = new ArrayList<>();
-        DetectorResult[] detectorResults = new MultiDetector(image.getBlackMatrix())
-                .detectMulti(hints);
+        DetectorResult[] detectorResults = new MultiDetector(image.getBlackMatrix()).detectMulti(hints);
         for (DetectorResult detectorResult : detectorResults) {
             try {
                 DecoderResult decoderResult = getDecoder().decode(detectorResult.getBits(), hints);
                 ResultPoint[] points = detectorResult.getPoints();
-                // If the code was mirrored: swap the bottom-left and the
-                // top-right points.
+                // If the code was mirrored: swap the bottom-left and the top-right points.
                 if (decoderResult.getOther() instanceof QRCodeDecoderMetaData) {
-                    ((QRCodeDecoderMetaData) decoderResult.getOther())
-                            .applyMirroredCorrection(points);
+                    ((QRCodeDecoderMetaData) decoderResult.getOther()).applyMirroredCorrection(points);
                 }
-                Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(),
-                        points, BarcodeFormat.QR_CODE);
+                Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points,
+                        BarcodeFormat.QR_CODE);
                 List<byte[]> byteSegments = decoderResult.getByteSegments();
                 if (byteSegments != null) {
                     result.putMetadata(ResultMetadataType.BYTE_SEGMENTS, byteSegments);
@@ -105,8 +101,7 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
 
         // first, check, if there is at least on SA result in the list
         for (Result result : results) {
-            if (result.getResultMetadata().containsKey(
-                    ResultMetadataType.STRUCTURED_APPEND_SEQUENCE)) {
+            if (result.getResultMetadata().containsKey(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE)) {
                 hasSA = true;
                 break;
             }
@@ -120,8 +115,7 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
         List<Result> saResults = new ArrayList<>();
         for (Result result : results) {
             newResults.add(result);
-            if (result.getResultMetadata().containsKey(
-                    ResultMetadataType.STRUCTURED_APPEND_SEQUENCE)) {
+            if (result.getResultMetadata().containsKey(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE)) {
                 saResults.add(result);
             }
         }
@@ -135,8 +129,8 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
             rawBytesLen += saResult.getRawBytes().length;
             if (saResult.getResultMetadata().containsKey(ResultMetadataType.BYTE_SEGMENTS)) {
                 @SuppressWarnings("unchecked")
-                Iterable<byte[]> byteSegments = (Iterable<byte[]>) saResult.getResultMetadata()
-                        .get(ResultMetadataType.BYTE_SEGMENTS);
+                Iterable<byte[]> byteSegments =
+                        (Iterable<byte[]>) saResult.getResultMetadata().get(ResultMetadataType.BYTE_SEGMENTS);
                 for (byte[] segment : byteSegments) {
                     byteSegmentLength += segment.length;
                 }
@@ -147,21 +141,19 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
         int newRawBytesIndex = 0;
         int byteSegmentIndex = 0;
         for (Result saResult : saResults) {
-            System.arraycopy(saResult.getRawBytes(), 0, newRawBytes, newRawBytesIndex,
-                    saResult.getRawBytes().length);
+            System.arraycopy(saResult.getRawBytes(), 0, newRawBytes, newRawBytesIndex, saResult.getRawBytes().length);
             newRawBytesIndex += saResult.getRawBytes().length;
             if (saResult.getResultMetadata().containsKey(ResultMetadataType.BYTE_SEGMENTS)) {
                 @SuppressWarnings("unchecked")
-                Iterable<byte[]> byteSegments = (Iterable<byte[]>) saResult.getResultMetadata()
-                        .get(ResultMetadataType.BYTE_SEGMENTS);
+                Iterable<byte[]> byteSegments =
+                        (Iterable<byte[]>) saResult.getResultMetadata().get(ResultMetadataType.BYTE_SEGMENTS);
                 for (byte[] segment : byteSegments) {
                     System.arraycopy(segment, 0, newByteSegment, byteSegmentIndex, segment.length);
                     byteSegmentIndex += segment.length;
                 }
             }
         }
-        Result newResult = new Result(concatedText.toString(), newRawBytes, NO_POINTS,
-                BarcodeFormat.QR_CODE);
+        Result newResult = new Result(concatedText.toString(), newRawBytes, NO_POINTS, BarcodeFormat.QR_CODE);
         if (byteSegmentLength > 0) {
             Collection<byte[]> byteSegmentList = new ArrayList<>();
             byteSegmentList.add(newByteSegment);
@@ -174,17 +166,9 @@ public final class QRCodeMultiReader extends QRCodeReader implements MultipleBar
     private static final class SAComparator implements Comparator<Result>, Serializable {
         @Override
         public int compare(Result a, Result b) {
-            int aNumber = (int) (a.getResultMetadata()
-                    .get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE));
-            int bNumber = (int) (b.getResultMetadata()
-                    .get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE));
-            if (aNumber < bNumber) {
-                return -1;
-            }
-            if (aNumber > bNumber) {
-                return 1;
-            }
-            return 0;
+            int aNumber = (int) a.getResultMetadata().get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
+            int bNumber = (int) b.getResultMetadata().get(ResultMetadataType.STRUCTURED_APPEND_SEQUENCE);
+            return Integer.compare(aNumber, bNumber);
         }
     }
 

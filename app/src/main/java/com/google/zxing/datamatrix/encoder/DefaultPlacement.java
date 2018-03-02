@@ -19,8 +19,7 @@ package com.google.zxing.datamatrix.encoder;
 import java.util.Arrays;
 
 /**
- * Symbol Character Placement Program. Adapted from Annex M.1 in ISO/IEC
- * 16022:2000(E).
+ * Symbol Character Placement Program. Adapted from Annex M.1 in ISO/IEC 16022:2000(E).
  */
 public class DefaultPlacement {
 
@@ -32,19 +31,16 @@ public class DefaultPlacement {
     /**
      * Main constructor
      *
-     * @param codewords
-     *            the codewords to place
-     * @param numcols
-     *            the number of columns
-     * @param numrows
-     *            the number of rows
+     * @param codewords the codewords to place
+     * @param numcols   the number of columns
+     * @param numrows   the number of rows
      */
     public DefaultPlacement(CharSequence codewords, int numcols, int numrows) {
         this.codewords = codewords;
         this.numcols = numcols;
         this.numrows = numrows;
         this.bits = new byte[numcols * numrows];
-        Arrays.fill(this.bits, (byte) -1); // Initialize with "not set" value
+        Arrays.fill(this.bits, (byte) -1); //Initialize with "not set" value
     }
 
     final int getNumrows() {
@@ -63,11 +59,11 @@ public class DefaultPlacement {
         return bits[row * numcols + col] == 1;
     }
 
-    final void setBit(int col, int row, boolean bit) {
-        bits[row * numcols + col] = bit ? (byte) 1 : (byte) 0;
+    private void setBit(int col, int row, boolean bit) {
+        bits[row * numcols + col] = (byte) (bit ? 1 : 0);
     }
 
-    final boolean hasBit(int col, int row) {
+    private boolean hasBit(int col, int row) {
         return bits[row * numcols + col] >= 0;
     }
 
@@ -77,10 +73,7 @@ public class DefaultPlacement {
         int col = 0;
 
         do {
-            /*
-             * repeatedly first check for one of the special corner cases,
-             * then...
-             */
+            /* repeatedly first check for one of the special corner cases, then... */
             if ((row == numrows) && (col == 0)) {
                 corner1(pos++);
             }
@@ -104,10 +97,7 @@ public class DefaultPlacement {
             row++;
             col += 3;
 
-            /*
-             * and then sweep downward diagonally, inserting successive
-             * characters, ...
-             */
+            /* and then sweep downward diagonally, inserting successive characters, ... */
             do {
                 if ((row >= 0) && (col < numcols) && !hasBit(col, row)) {
                     utah(row, col, pos++);
@@ -121,10 +111,7 @@ public class DefaultPlacement {
             /* ...until the entire array is scanned */
         } while ((row < numrows) || (col < numcols));
 
-        /*
-         * Lastly, if the lower righthand corner is untouched, fill in fixed
-         * pattern
-         */
+        /* Lastly, if the lower righthand corner is untouched, fill in fixed pattern */
         if (!hasBit(numcols - 1, numrows - 1)) {
             setBit(numcols - 1, numrows - 1, true);
             setBit(numcols - 2, numrows - 2, true);
@@ -149,12 +136,9 @@ public class DefaultPlacement {
     /**
      * Places the 8 bits of a utah-shaped symbol character in ECC200.
      *
-     * @param row
-     *            the row
-     * @param col
-     *            the column
-     * @param pos
-     *            character position
+     * @param row the row
+     * @param col the column
+     * @param pos character position
      */
     private void utah(int row, int col, int pos) {
         module(row - 2, col - 2, pos, 1);

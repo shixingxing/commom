@@ -48,19 +48,13 @@ public final class WhiteRectangleDetector {
     }
 
     /**
-     * @param image
-     *            barcode image to find a rectangle in
-     * @param initSize
-     *            initial size of search area around center
-     * @param x
-     *            x position of search center
-     * @param y
-     *            y position of search center
-     * @throws NotFoundException
-     *             if image is too small to accommodate {@code initSize}
+     * @param image    barcode image to find a rectangle in
+     * @param initSize initial size of search area around center
+     * @param x        x position of search center
+     * @param y        y position of search center
+     * @throws NotFoundException if image is too small to accommodate {@code initSize}
      */
-    public WhiteRectangleDetector(BitMatrix image, int initSize, int x, int y)
-            throws NotFoundException {
+    public WhiteRectangleDetector(BitMatrix image, int initSize, int x, int y) throws NotFoundException {
         this.image = image;
         height = image.getHeight();
         width = image.getWidth();
@@ -77,17 +71,16 @@ public final class WhiteRectangleDetector {
     /**
      * <p>
      * Detects a candidate barcode-like rectangular region within an image. It
-     * starts around the center of the image, increases the size of the
-     * candidate region until it finds a white rectangular region.
+     * starts around the center of the image, increases the size of the candidate
+     * region until it finds a white rectangular region.
      * </p>
      *
      * @return {@link ResultPoint}[] describing the corners of the rectangular
-     *         region. The first and last points are opposed on the diagonal, as
-     *         are the second and third. The first point will be the topmost
-     *         point and the last, the bottommost. The second point will be
-     *         leftmost and the third, the rightmost
-     * @throws NotFoundException
-     *             if no Data Matrix Code can be found
+     * region. The first and last points are opposed on the diagonal, as
+     * are the second and third. The first point will be the topmost
+     * point and the last, the bottommost. The second point will be
+     * leftmost and the third, the rightmost
+     * @throws NotFoundException if no Data Matrix Code can be found
      */
     public ResultPoint[] detect() throws NotFoundException {
 
@@ -109,7 +102,7 @@ public final class WhiteRectangleDetector {
             aBlackPointFoundOnBorder = false;
 
             // .....
-            // . |
+            // .   |
             // .....
             boolean rightBorderNotWhite = true;
             while ((rightBorderNotWhite || !atLeastOneBlackPointFoundOnRight) && right < width) {
@@ -129,7 +122,7 @@ public final class WhiteRectangleDetector {
             }
 
             // .....
-            // . .
+            // .   .
             // .___.
             boolean bottomBorderNotWhite = true;
             while ((bottomBorderNotWhite || !atLeastOneBlackPointFoundOnBottom) && down < height) {
@@ -149,7 +142,7 @@ public final class WhiteRectangleDetector {
             }
 
             // .....
-            // | .
+            // |   .
             // .....
             boolean leftBorderNotWhite = true;
             while ((leftBorderNotWhite || !atLeastOneBlackPointFoundOnLeft) && left >= 0) {
@@ -169,7 +162,7 @@ public final class WhiteRectangleDetector {
             }
 
             // .___.
-            // . .
+            // .   .
             // .....
             boolean topBorderNotWhite = true;
             while ((topBorderNotWhite || !atLeastOneBlackPointFoundOnTop) && up >= 0) {
@@ -199,11 +192,8 @@ public final class WhiteRectangleDetector {
             int maxSize = right - left;
 
             ResultPoint z = null;
-            for (int i = 1; i < maxSize; i++) {
+            for (int i = 1; z == null && i < maxSize; i++) {
                 z = getBlackPointOnSegment(left, down - i, left + i, down);
-                if (z != null) {
-                    break;
-                }
             }
 
             if (z == null) {
@@ -211,12 +201,9 @@ public final class WhiteRectangleDetector {
             }
 
             ResultPoint t = null;
-            // go down right
-            for (int i = 1; i < maxSize; i++) {
+            //go down right
+            for (int i = 1; t == null && i < maxSize; i++) {
                 t = getBlackPointOnSegment(left, up + i, left + i, up);
-                if (t != null) {
-                    break;
-                }
             }
 
             if (t == null) {
@@ -224,12 +211,9 @@ public final class WhiteRectangleDetector {
             }
 
             ResultPoint x = null;
-            // go down left
-            for (int i = 1; i < maxSize; i++) {
+            //go down left
+            for (int i = 1; x == null && i < maxSize; i++) {
                 x = getBlackPointOnSegment(right, up + i, right - i, up);
-                if (x != null) {
-                    break;
-                }
             }
 
             if (x == null) {
@@ -237,12 +221,9 @@ public final class WhiteRectangleDetector {
             }
 
             ResultPoint y = null;
-            // go up left
-            for (int i = 1; i < maxSize; i++) {
+            //go up left
+            for (int i = 1; y == null && i < maxSize; i++) {
                 y = getBlackPointOnSegment(right, down - i, right - i, down);
-                if (y != null) {
-                    break;
-                }
             }
 
             if (y == null) {
@@ -274,27 +255,24 @@ public final class WhiteRectangleDetector {
     /**
      * recenters the points of a constant distance towards the center
      *
-     * @param y
-     *            bottom most point
-     * @param z
-     *            left most point
-     * @param x
-     *            right most point
-     * @param t
-     *            top most point
+     * @param y bottom most point
+     * @param z left most point
+     * @param x right most point
+     * @param t top most point
      * @return {@link ResultPoint}[] describing the corners of the rectangular
-     *         region. The first and last points are opposed on the diagonal, as
-     *         are the second and third. The first point will be the topmost
-     *         point and the last, the bottommost. The second point will be
-     *         leftmost and the third, the rightmost
+     * region. The first and last points are opposed on the diagonal, as
+     * are the second and third. The first point will be the topmost
+     * point and the last, the bottommost. The second point will be
+     * leftmost and the third, the rightmost
      */
-    private ResultPoint[] centerEdges(ResultPoint y, ResultPoint z, ResultPoint x, ResultPoint t) {
+    private ResultPoint[] centerEdges(ResultPoint y, ResultPoint z,
+                                      ResultPoint x, ResultPoint t) {
 
         //
-        // t t
-        // z x
-        // x OR z
-        // y y
+        //       t            t
+        //  z                      x
+        //        x    OR    z
+        //   y                    y
         //
 
         float yi = y.getX();
@@ -307,27 +285,27 @@ public final class WhiteRectangleDetector {
         float tj = t.getY();
 
         if (yi < width / 2.0f) {
-            return new ResultPoint[] { new ResultPoint(ti - CORR, tj + CORR),
-                    new ResultPoint(zi + CORR, zj + CORR), new ResultPoint(xi - CORR, xj - CORR),
-                    new ResultPoint(yi + CORR, yj - CORR) };
+            return new ResultPoint[]{
+                    new ResultPoint(ti - CORR, tj + CORR),
+                    new ResultPoint(zi + CORR, zj + CORR),
+                    new ResultPoint(xi - CORR, xj - CORR),
+                    new ResultPoint(yi + CORR, yj - CORR)};
         } else {
-            return new ResultPoint[] { new ResultPoint(ti + CORR, tj + CORR),
-                    new ResultPoint(zi + CORR, zj - CORR), new ResultPoint(xi - CORR, xj + CORR),
-                    new ResultPoint(yi - CORR, yj - CORR) };
+            return new ResultPoint[]{
+                    new ResultPoint(ti + CORR, tj + CORR),
+                    new ResultPoint(zi + CORR, zj - CORR),
+                    new ResultPoint(xi - CORR, xj + CORR),
+                    new ResultPoint(yi - CORR, yj - CORR)};
         }
     }
 
     /**
      * Determines whether a segment contains a black point
      *
-     * @param a
-     *            min value of the scanned coordinate
-     * @param b
-     *            max value of the scanned coordinate
-     * @param fixed
-     *            value of fixed coordinate
-     * @param horizontal
-     *            set to true if scan must be horizontal, false if vertical
+     * @param a          min value of the scanned coordinate
+     * @param b          max value of the scanned coordinate
+     * @param fixed      value of fixed coordinate
+     * @param horizontal set to true if scan must be horizontal, false if vertical
      * @return true if a black point has been found, else false.
      */
     private boolean containsBlackPoint(int a, int b, int fixed, boolean horizontal) {

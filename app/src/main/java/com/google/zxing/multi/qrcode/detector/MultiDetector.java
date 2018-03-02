@@ -30,10 +30,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>
- * Encapsulates logic that can detect one or more QR Codes in an image, even if
- * the QR Code is rotated or skewed, or partially obscured.
- * </p>
+ * <p>Encapsulates logic that can detect one or more QR Codes in an image, even if the QR Code
+ * is rotated or skewed, or partially obscured.</p>
  *
  * @author Sean Owen
  * @author Hannes Erven
@@ -48,8 +46,8 @@ public final class MultiDetector extends Detector {
 
     public DetectorResult[] detectMulti(Map<DecodeHintType, ?> hints) throws NotFoundException {
         BitMatrix image = getImage();
-        ResultPointCallback resultPointCallback = hints == null ? null
-                : (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
+        ResultPointCallback resultPointCallback =
+                hints == null ? null : (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
         MultiFinderPatternFinder finder = new MultiFinderPatternFinder(image, resultPointCallback);
         FinderPatternInfo[] infos = finder.findMulti(hints);
 

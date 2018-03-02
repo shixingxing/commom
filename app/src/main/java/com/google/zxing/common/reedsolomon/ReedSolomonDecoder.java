@@ -17,28 +17,22 @@
 package com.google.zxing.common.reedsolomon;
 
 /**
+ * <p>Implements Reed-Solomon decoding, as the name implies.</p>
  * <p>
- * Implements Reed-Solomon decoding, as the name implies.
- * </p>
- *
+ * <p>The algorithm will not be explained here, but the following references were helpful
+ * in creating this implementation:</p>
  * <p>
- * The algorithm will not be explained here, but the following references were
- * helpful in creating this implementation:
- * </p>
- *
  * <ul>
- * <li>Bruce Maggs. <a href=
- * "http://www.cs.cmu.edu/afs/cs.cmu.edu/project/pscico-guyb/realworld/www/rs_decode.ps"
- * > "Decoding Reed-Solomon Codes"</a> (see discussion of Forney's Formula)</li>
+ * <li>Bruce Maggs.
+ * <a href="http://www.cs.cmu.edu/afs/cs.cmu.edu/project/pscico-guyb/realworld/www/rs_decode.ps">
+ * "Decoding Reed-Solomon Codes"</a> (see discussion of Forney's Formula)</li>
  * <li>J.I. Hall. <a href="www.mth.msu.edu/~jhall/classes/codenotes/GRS.pdf">
- * "Chapter 5. Generalized Reed-Solomon Codes"</a> (see discussion of Euclidean
- * algorithm)</li>
+ * "Chapter 5. Generalized Reed-Solomon Codes"</a>
+ * (see discussion of Euclidean algorithm)</li>
  * </ul>
- *
  * <p>
- * Much credit is due to William Rucklidge since portions of this code are an
- * indirect port of his C++ Reed-Solomon implementation.
- * </p>
+ * <p>Much credit is due to William Rucklidge since portions of this code are an indirect
+ * port of his C++ Reed-Solomon implementation.</p>
  *
  * @author Sean Owen
  * @author William Rucklidge
@@ -53,18 +47,13 @@ public final class ReedSolomonDecoder {
     }
 
     /**
-     * <p>
-     * Decodes given set of received codewords, which include both data and
-     * error-correction codewords. Really, this means it uses Reed-Solomon to
-     * detect and correct errors, in-place, in the input.
-     * </p>
+     * <p>Decodes given set of received codewords, which include both data and error-correction
+     * codewords. Really, this means it uses Reed-Solomon to detect and correct errors, in-place,
+     * in the input.</p>
      *
-     * @param received
-     *            data and error-correction codewords
-     * @param twoS
-     *            number of error-correction codewords available
-     * @throws ReedSolomonException
-     *             if decoding fails for any reason
+     * @param received data and error-correction codewords
+     * @param twoS     number of error-correction codewords available
+     * @throws ReedSolomonException if decoding fails for any reason
      */
     public void decode(int[] received, int twoS) throws ReedSolomonException {
         GenericGFPoly poly = new GenericGFPoly(field, received);
@@ -81,8 +70,8 @@ public final class ReedSolomonDecoder {
             return;
         }
         GenericGFPoly syndrome = new GenericGFPoly(field, syndromeCoefficients);
-        GenericGFPoly[] sigmaOmega = runEuclideanAlgorithm(field.buildMonomial(twoS, 1), syndrome,
-                twoS);
+        GenericGFPoly[] sigmaOmega =
+                runEuclideanAlgorithm(field.buildMonomial(twoS, 1), syndrome, twoS);
         GenericGFPoly sigma = sigmaOmega[0];
         GenericGFPoly omega = sigmaOmega[1];
         int[] errorLocations = findErrorLocations(sigma);
@@ -148,14 +137,14 @@ public final class ReedSolomonDecoder {
         int inverse = field.inverse(sigmaTildeAtZero);
         GenericGFPoly sigma = t.multiply(inverse);
         GenericGFPoly omega = r.multiply(inverse);
-        return new GenericGFPoly[] { sigma, omega };
+        return new GenericGFPoly[]{sigma, omega};
     }
 
     private int[] findErrorLocations(GenericGFPoly errorLocator) throws ReedSolomonException {
         // This is a direct application of Chien's search
         int numErrors = errorLocator.getDegree();
         if (numErrors == 1) { // shortcut
-            return new int[] { errorLocator.getCoefficient(1) };
+            return new int[]{errorLocator.getCoefficient(1)};
         }
         int[] result = new int[numErrors];
         int e = 0;
@@ -180,11 +169,9 @@ public final class ReedSolomonDecoder {
             int denominator = 1;
             for (int j = 0; j < s; j++) {
                 if (i != j) {
-                    // denominator = field.multiply(denominator,
-                    // GenericGF.addOrSubtract(1,
-                    // field.multiply(errorLocations[j], xiInverse)));
-                    // Above should work but fails on some Apple and Linux JDKs
-                    // due to a Hotspot bug.
+                    //denominator = field.multiply(denominator,
+                    //    GenericGF.addOrSubtract(1, field.multiply(errorLocations[j], xiInverse)));
+                    // Above should work but fails on some Apple and Linux JDKs due to a Hotspot bug.
                     // Below is a funny-looking workaround from Steven Parkes
                     int term = field.multiply(errorLocations[j], xiInverse);
                     int termPlus1 = (term & 0x1) == 0 ? term | 1 : term & ~1;

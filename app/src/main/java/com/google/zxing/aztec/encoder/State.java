@@ -22,8 +22,8 @@ import java.util.Deque;
 import java.util.LinkedList;
 
 /**
- * State represents all information about a sequence necessary to generate the
- * current output. Note that a state is immutable.
+ * State represents all information about a sequence necessary to generate the current output.
+ * Note that a state is immutable.
  */
 final class State {
 
@@ -32,7 +32,7 @@ final class State {
     // The current mode of the encoding (or the mode to which we'll return if
     // we're in Binary Shift mode.
     private final int mode;
-    // The list of tokens that we output. If we are in Binary Shift mode, this
+    // The list of tokens that we output.  If we are in Binary Shift mode, this
     // token list does *not* yet included the token for those bytes
     private final Token token;
     // If non-zero, the number of most recent bytes that should be output
@@ -47,12 +47,11 @@ final class State {
         this.binaryShiftByteCount = binaryBytes;
         this.bitCount = bitCount;
         // Make sure we match the token
-        // int binaryShiftBitCount = (binaryShiftByteCount * 8) +
-        // (binaryShiftByteCount == 0 ? 0 :
-        // binaryShiftByteCount <= 31 ? 10 :
-        // binaryShiftByteCount <= 62 ? 20 : 21);
-        // assert this.bitCount == token.getTotalBitCount() +
-        // binaryShiftBitCount;
+        //int binaryShiftBitCount = (binaryShiftByteCount * 8) +
+        //    (binaryShiftByteCount == 0 ? 0 :
+        //     binaryShiftByteCount <= 31 ? 10 :
+        //     binaryShiftByteCount <= 62 ? 20 : 21);
+        //assert this.bitCount == token.getTotalBitCount() + binaryShiftBitCount;
     }
 
     int getMode() {
@@ -74,7 +73,7 @@ final class State {
     // Create a new state representing this state with a latch to a (not
     // necessary different) mode, and then a code.
     State latchAndAppend(int mode, int value) {
-        // assert binaryShiftByteCount == 0;
+        //assert binaryShiftByteCount == 0;
         int bitCount = this.bitCount;
         Token token = this.token;
         if (mode != this.mode) {
@@ -90,7 +89,7 @@ final class State {
     // Create a new state representing this state, with a temporary shift
     // to a different mode to output a single value.
     State shiftAndAppend(int mode, int value) {
-        // assert binaryShiftByteCount == 0 && this.mode != mode;
+        //assert binaryShiftByteCount == 0 && this.mode != mode;
         Token token = this.token;
         int thisModeBitCount = this.mode == HighLevelEncoder.MODE_DIGIT ? 4 : 5;
         // Shifts exist only to UPPER and PUNCT, both with tokens size 5.
@@ -106,17 +105,18 @@ final class State {
         int mode = this.mode;
         int bitCount = this.bitCount;
         if (this.mode == HighLevelEncoder.MODE_PUNCT || this.mode == HighLevelEncoder.MODE_DIGIT) {
-            // assert binaryShiftByteCount == 0;
+            //assert binaryShiftByteCount == 0;
             int latch = HighLevelEncoder.LATCH_TABLE[mode][HighLevelEncoder.MODE_UPPER];
             token = token.add(latch & 0xFFFF, latch >> 16);
             bitCount += latch >> 16;
             mode = HighLevelEncoder.MODE_UPPER;
         }
-        int deltaBitCount = (binaryShiftByteCount == 0 || binaryShiftByteCount == 31) ? 18
-                : (binaryShiftByteCount == 62) ? 9 : 8;
+        int deltaBitCount =
+                (binaryShiftByteCount == 0 || binaryShiftByteCount == 31) ? 18 :
+                        (binaryShiftByteCount == 62) ? 9 : 8;
         State result = new State(token, mode, binaryShiftByteCount + 1, bitCount + deltaBitCount);
         if (result.binaryShiftByteCount == 2047 + 31) {
-            // The string is as long as it's allowed to be. We should end it.
+            // The string is as long as it's allowed to be.  We should end it.
             result = result.endBinaryShift(index + 1);
         }
         return result;
@@ -130,7 +130,7 @@ final class State {
         }
         Token token = this.token;
         token = token.addBinaryShift(index - binaryShiftByteCount, binaryShiftByteCount);
-        // assert token.getTotalBitCount() == this.bitCount;
+        //assert token.getTotalBitCount() == this.bitCount;
         return new State(token, mode, 0, this.bitCount);
     }
 
@@ -138,9 +138,9 @@ final class State {
     // state under all possible circumstances.
     boolean isBetterThanOrEqualTo(State other) {
         int mySize = this.bitCount + (HighLevelEncoder.LATCH_TABLE[this.mode][other.mode] >> 16);
-        if (other.binaryShiftByteCount > 0
-                && (this.binaryShiftByteCount == 0 || this.binaryShiftByteCount > other.binaryShiftByteCount)) {
-            mySize += 10; // Cost of entering Binary Shift mode.
+        if (other.binaryShiftByteCount > 0 &&
+                (this.binaryShiftByteCount == 0 || this.binaryShiftByteCount > other.binaryShiftByteCount)) {
+            mySize += 10;     // Cost of entering Binary Shift mode.
         }
         return mySize <= other.bitCount;
     }
@@ -149,8 +149,7 @@ final class State {
         // Reverse the tokens, so that they are in the order that they should
         // be output
         Deque<Token> symbols = new LinkedList<>();
-        for (Token token = endBinaryShift(text.length).token; token != null; token = token
-                .getPrevious()) {
+        for (Token token = endBinaryShift(text.length).token; token != null; token = token.getPrevious()) {
             symbols.addFirst(token);
         }
         BitArray bitArray = new BitArray();
@@ -158,14 +157,13 @@ final class State {
         for (Token symbol : symbols) {
             symbol.appendTo(bitArray, text);
         }
-        // assert bitArray.getSize() == this.bitCount;
+        //assert bitArray.getSize() == this.bitCount;
         return bitArray;
     }
 
     @Override
     public String toString() {
-        return String.format("%s bits=%d bytes=%d", HighLevelEncoder.MODE_NAMES[mode], bitCount,
-                binaryShiftByteCount);
+        return String.format("%s bits=%d bytes=%d", HighLevelEncoder.MODE_NAMES[mode], bitCount, binaryShiftByteCount);
     }
 
 }

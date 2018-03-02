@@ -27,37 +27,46 @@ import com.google.zxing.common.reedsolomon.ReedSolomonException;
 import java.util.Arrays;
 
 /**
- * <p>
- * The main class which implements Aztec Code decoding -- as opposed to locating
- * and extracting the Aztec Code from an image.
- * </p>
+ * <p>The main class which implements Aztec Code decoding -- as opposed to locating and extracting
+ * the Aztec Code from an image.</p>
  *
  * @author David Olivier
  */
 public final class Decoder {
 
     private enum Table {
-        UPPER, LOWER, MIXED, DIGIT, PUNCT, BINARY
+        UPPER,
+        LOWER,
+        MIXED,
+        DIGIT,
+        PUNCT,
+        BINARY
     }
 
-    private static final String[] UPPER_TABLE = { "CTRL_PS", " ", "A", "B", "C", "D", "E", "F",
-            "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W",
-            "X", "Y", "Z", "CTRL_LL", "CTRL_ML", "CTRL_DL", "CTRL_BS" };
+    private static final String[] UPPER_TABLE = {
+            "CTRL_PS", " ", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
+            "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "CTRL_LL", "CTRL_ML", "CTRL_DL", "CTRL_BS"
+    };
 
-    private static final String[] LOWER_TABLE = { "CTRL_PS", " ", "a", "b", "c", "d", "e", "f",
-            "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w",
-            "x", "y", "z", "CTRL_US", "CTRL_ML", "CTRL_DL", "CTRL_BS" };
+    private static final String[] LOWER_TABLE = {
+            "CTRL_PS", " ", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+            "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "CTRL_US", "CTRL_ML", "CTRL_DL", "CTRL_BS"
+    };
 
-    private static final String[] MIXED_TABLE = { "CTRL_PS", " ", "\1", "\2", "\3", "\4", "\5",
-            "\6", "\7", "\b", "\t", "\n", "\13", "\f", "\r", "\33", "\34", "\35", "\36", "\37",
-            "@", "\\", "^", "_", "`", "|", "~", "\177", "CTRL_LL", "CTRL_UL", "CTRL_PL", "CTRL_BS" };
+    private static final String[] MIXED_TABLE = {
+            "CTRL_PS", " ", "\1", "\2", "\3", "\4", "\5", "\6", "\7", "\b", "\t", "\n",
+            "\13", "\f", "\r", "\33", "\34", "\35", "\36", "\37", "@", "\\", "^", "_",
+            "`", "|", "~", "\177", "CTRL_LL", "CTRL_UL", "CTRL_PL", "CTRL_BS"
+    };
 
-    private static final String[] PUNCT_TABLE = { "", "\r", "\r\n", ". ", ", ", ": ", "!", "\"",
-            "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", ":", ";", "<", "=",
-            ">", "?", "[", "]", "{", "}", "CTRL_UL" };
+    private static final String[] PUNCT_TABLE = {
+            "", "\r", "\r\n", ". ", ", ", ": ", "!", "\"", "#", "$", "%", "&", "'", "(", ")",
+            "*", "+", ",", "-", ".", "/", ":", ";", "<", "=", ">", "?", "[", "]", "{", "}", "CTRL_UL"
+    };
 
-    private static final String[] DIGIT_TABLE = { "CTRL_PS", " ", "0", "1", "2", "3", "4", "5",
-            "6", "7", "8", "9", ",", ".", "CTRL_UL", "CTRL_US" };
+    private static final String[] DIGIT_TABLE = {
+            "CTRL_PS", " ", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ",", ".", "CTRL_UL", "CTRL_US"
+    };
 
     private AztecDetectorResult ddata;
 
@@ -66,8 +75,11 @@ public final class Decoder {
         BitMatrix matrix = detectorResult.getBits();
         boolean[] rawbits = extractBits(matrix);
         boolean[] correctedBits = correctBits(rawbits);
+        byte[] rawBytes = convertBoolArrayToByteArray(correctedBits);
         String result = getEncodedData(correctedBits);
-        return new DecoderResult(null, result, null, null);
+        DecoderResult decoderResult = new DecoderResult(rawBytes, result, null, null);
+        decoderResult.setNumBits(correctedBits.length);
+        return decoderResult;
     }
 
     // This method is used for testing the high-level encoder
@@ -102,7 +114,7 @@ public final class Decoder {
                 }
                 for (int charCount = 0; charCount < length; charCount++) {
                     if (endIndex - index < 8) {
-                        index = endIndex; // Force outer loop to exit
+                        index = endIndex;  // Force outer loop to exit
                         break;
                     }
                     int code = readCode(correctedBits, index, 8);
@@ -121,6 +133,10 @@ public final class Decoder {
                 String str = getCharacter(shiftTable, code);
                 if (str.startsWith("CTRL_")) {
                     // Table changes
+                    // ISO/IEC 24778:2008 prescribes ending a shift sequence in the mode from which it was invoked.
+                    // That's including when that mode is a shift.
+                    // Our test case dlusbs.png for issue #642 exercises that.
+                    latchTable = shiftTable;  // Latch the current mode, so as to return to Upper after U/S B/S
                     shiftTable = getTable(str.charAt(5));
                     if (str.charAt(6) == 'L') {
                         latchTable = shiftTable;
@@ -140,57 +156,51 @@ public final class Decoder {
      */
     private static Table getTable(char t) {
         switch (t) {
-        case 'L':
-            return Table.LOWER;
-        case 'P':
-            return Table.PUNCT;
-        case 'M':
-            return Table.MIXED;
-        case 'D':
-            return Table.DIGIT;
-        case 'B':
-            return Table.BINARY;
-        case 'U':
-        default:
-            return Table.UPPER;
+            case 'L':
+                return Table.LOWER;
+            case 'P':
+                return Table.PUNCT;
+            case 'M':
+                return Table.MIXED;
+            case 'D':
+                return Table.DIGIT;
+            case 'B':
+                return Table.BINARY;
+            case 'U':
+            default:
+                return Table.UPPER;
         }
     }
 
     /**
-     * Gets the character (or string) corresponding to the passed code in the
-     * given table
+     * Gets the character (or string) corresponding to the passed code in the given table
      *
-     * @param table
-     *            the table used
-     * @param code
-     *            the code of the character
+     * @param table the table used
+     * @param code  the code of the character
      */
     private static String getCharacter(Table table, int code) {
         switch (table) {
-        case UPPER:
-            return UPPER_TABLE[code];
-        case LOWER:
-            return LOWER_TABLE[code];
-        case MIXED:
-            return MIXED_TABLE[code];
-        case PUNCT:
-            return PUNCT_TABLE[code];
-        case DIGIT:
-            return DIGIT_TABLE[code];
-        default:
-            // Should not reach here.
-            throw new IllegalStateException("Bad table");
+            case UPPER:
+                return UPPER_TABLE[code];
+            case LOWER:
+                return LOWER_TABLE[code];
+            case MIXED:
+                return MIXED_TABLE[code];
+            case PUNCT:
+                return PUNCT_TABLE[code];
+            case DIGIT:
+                return DIGIT_TABLE[code];
+            default:
+                // Should not reach here.
+                throw new IllegalStateException("Bad table");
         }
     }
 
     /**
-     * <p>
-     * Performs RS error correction on an array of bits.
-     * </p>
+     * <p>Performs RS error correction on an array of bits.</p>
      *
      * @return the corrected array
-     * @throws FormatException
-     *             if the input contains too many errors
+     * @throws FormatException if the input contains too many errors
      */
     private boolean[] correctBits(boolean[] rawbits) throws FormatException {
         GenericGF gf;
@@ -216,7 +226,6 @@ public final class Decoder {
             throw FormatException.getFormatInstance();
         }
         int offset = rawbits.length % codewordSize;
-        int numECCodewords = numCodewords - numDataCodewords;
 
         int[] dataWords = new int[numCodewords];
         for (int i = 0; i < numCodewords; i++, offset += codewordSize) {
@@ -225,9 +234,9 @@ public final class Decoder {
 
         try {
             ReedSolomonDecoder rsDecoder = new ReedSolomonDecoder(gf);
-            rsDecoder.decode(dataWords, numECCodewords);
-        } catch (ReedSolomonException ignored) {
-            throw FormatException.getFormatInstance();
+            rsDecoder.decode(dataWords, numCodewords - numDataCodewords);
+        } catch (ReedSolomonException ex) {
+            throw FormatException.getFormatInstance(ex);
         }
 
         // Now perform the unstuffing operation.
@@ -265,13 +274,10 @@ public final class Decoder {
      *
      * @return the array of bits
      */
-    boolean[] extractBits(BitMatrix matrix) {
+    private boolean[] extractBits(BitMatrix matrix) {
         boolean compact = ddata.isCompact();
         int layers = ddata.getNbLayers();
-        int baseMatrixSize = compact ? 11 + layers * 4 : 14 + layers * 4; // not
-                                                                          // including
-                                                                          // alignment
-                                                                          // lines
+        int baseMatrixSize = (compact ? 11 : 14) + layers * 4; // not including alignment lines
         int[] alignmentMap = new int[baseMatrixSize];
         boolean[] rawbits = new boolean[totalBitsInLayer(layers, compact)];
 
@@ -290,30 +296,27 @@ public final class Decoder {
             }
         }
         for (int i = 0, rowOffset = 0; i < layers; i++) {
-            int rowSize = compact ? (layers - i) * 4 + 9 : (layers - i) * 4 + 12;
-            // The top-left most point of this layer is <low, low> (not
-            // including alignment lines)
+            int rowSize = (layers - i) * 4 + (compact ? 9 : 12);
+            // The top-left most point of this layer is <low, low> (not including alignment lines)
             int low = i * 2;
-            // The bottom-right most point of this layer is <high, high> (not
-            // including alignment lines)
+            // The bottom-right most point of this layer is <high, high> (not including alignment lines)
             int high = baseMatrixSize - 1 - low;
-            // We pull bits from the two 2 x rowSize columns and two rowSize x 2
-            // rows
+            // We pull bits from the two 2 x rowSize columns and two rowSize x 2 rows
             for (int j = 0; j < rowSize; j++) {
                 int columnOffset = j * 2;
                 for (int k = 0; k < 2; k++) {
                     // left column
-                    rawbits[rowOffset + columnOffset + k] = matrix.get(alignmentMap[low + k],
-                            alignmentMap[low + j]);
+                    rawbits[rowOffset + columnOffset + k] =
+                            matrix.get(alignmentMap[low + k], alignmentMap[low + j]);
                     // bottom row
-                    rawbits[rowOffset + 2 * rowSize + columnOffset + k] = matrix.get(
-                            alignmentMap[low + j], alignmentMap[high - k]);
+                    rawbits[rowOffset + 2 * rowSize + columnOffset + k] =
+                            matrix.get(alignmentMap[low + j], alignmentMap[high - k]);
                     // right column
-                    rawbits[rowOffset + 4 * rowSize + columnOffset + k] = matrix.get(
-                            alignmentMap[high - k], alignmentMap[high - j]);
+                    rawbits[rowOffset + 4 * rowSize + columnOffset + k] =
+                            matrix.get(alignmentMap[high - k], alignmentMap[high - j]);
                     // top row
-                    rawbits[rowOffset + 6 * rowSize + columnOffset + k] = matrix.get(
-                            alignmentMap[high - j], alignmentMap[low + k]);
+                    rawbits[rowOffset + 6 * rowSize + columnOffset + k] =
+                            matrix.get(alignmentMap[high - j], alignmentMap[low + k]);
                 }
             }
             rowOffset += rowSize * 8;
@@ -333,6 +336,28 @@ public final class Decoder {
             }
         }
         return res;
+    }
+
+    /**
+     * Reads a code of length 8 in an array of bits, padding with zeros
+     */
+    private static byte readByte(boolean[] rawbits, int startIndex) {
+        int n = rawbits.length - startIndex;
+        if (n >= 8) {
+            return (byte) readCode(rawbits, startIndex, 8);
+        }
+        return (byte) (readCode(rawbits, startIndex, n) << (8 - n));
+    }
+
+    /**
+     * Packs a bit array into bytes, most significant bit first
+     */
+    static byte[] convertBoolArrayToByteArray(boolean[] boolArr) {
+        byte[] byteArr = new byte[(boolArr.length + 7) / 8];
+        for (int i = 0; i < byteArr.length; i++) {
+            byteArr[i] = readByte(boolArr, 8 * i);
+        }
+        return byteArr;
     }
 
     private static int totalBitsInLayer(int layers, boolean compact) {

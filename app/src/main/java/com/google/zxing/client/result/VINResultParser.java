@@ -46,9 +46,15 @@ public final class VINResultParser extends ResultParser {
                 return null;
             }
             String wmi = rawText.substring(0, 3);
-            return new VINParsedResult(rawText, wmi, rawText.substring(3, 9), rawText.substring(9,
-                    17), countryCode(wmi), rawText.substring(3, 8), modelYear(rawText.charAt(9)),
-                    rawText.charAt(10), rawText.substring(11));
+            return new VINParsedResult(rawText,
+                    wmi,
+                    rawText.substring(3, 9),
+                    rawText.substring(9, 17),
+                    countryCode(wmi),
+                    rawText.substring(3, 8),
+                    modelYear(rawText.charAt(9)),
+                    rawText.charAt(10),
+                    rawText.substring(11));
         } catch (IllegalArgumentException iae) {
             return null;
         }
@@ -135,67 +141,67 @@ public final class VINResultParser extends ResultParser {
         char c1 = wmi.charAt(0);
         char c2 = wmi.charAt(1);
         switch (c1) {
-        case '1':
-        case '4':
-        case '5':
-            return "US";
-        case '2':
-            return "CA";
-        case '3':
-            if (c2 >= 'A' && c2 <= 'W') {
-                return "MX";
-            }
-            break;
-        case '9':
-            if ((c2 >= 'A' && c2 <= 'E') || (c2 >= '3' && c2 <= '9')) {
-                return "BR";
-            }
-            break;
-        case 'J':
-            if (c2 >= 'A' && c2 <= 'T') {
-                return "JP";
-            }
-            break;
-        case 'K':
-            if (c2 >= 'L' && c2 <= 'R') {
-                return "KO";
-            }
-            break;
-        case 'L':
-            return "CN";
-        case 'M':
-            if (c2 >= 'A' && c2 <= 'E') {
-                return "IN";
-            }
-            break;
-        case 'S':
-            if (c2 >= 'A' && c2 <= 'M') {
-                return "UK";
-            }
-            if (c2 >= 'N' && c2 <= 'T') {
+            case '1':
+            case '4':
+            case '5':
+                return "US";
+            case '2':
+                return "CA";
+            case '3':
+                if (c2 >= 'A' && c2 <= 'W') {
+                    return "MX";
+                }
+                break;
+            case '9':
+                if ((c2 >= 'A' && c2 <= 'E') || (c2 >= '3' && c2 <= '9')) {
+                    return "BR";
+                }
+                break;
+            case 'J':
+                if (c2 >= 'A' && c2 <= 'T') {
+                    return "JP";
+                }
+                break;
+            case 'K':
+                if (c2 >= 'L' && c2 <= 'R') {
+                    return "KO";
+                }
+                break;
+            case 'L':
+                return "CN";
+            case 'M':
+                if (c2 >= 'A' && c2 <= 'E') {
+                    return "IN";
+                }
+                break;
+            case 'S':
+                if (c2 >= 'A' && c2 <= 'M') {
+                    return "UK";
+                }
+                if (c2 >= 'N' && c2 <= 'T') {
+                    return "DE";
+                }
+                break;
+            case 'V':
+                if (c2 >= 'F' && c2 <= 'R') {
+                    return "FR";
+                }
+                if (c2 >= 'S' && c2 <= 'W') {
+                    return "ES";
+                }
+                break;
+            case 'W':
                 return "DE";
-            }
-            break;
-        case 'V':
-            if (c2 >= 'F' && c2 <= 'R') {
-                return "FR";
-            }
-            if (c2 >= 'S' && c2 <= 'W') {
-                return "ES";
-            }
-            break;
-        case 'W':
-            return "DE";
-        case 'X':
-            if (c2 == '0' || (c2 >= '3' && c2 <= '9')) {
-                return "RU";
-            }
-            break;
-        case 'Z':
-            if (c2 >= 'A' && c2 <= 'R') {
-                return "IT";
-            }
-            break;
+            case 'X':
+                if (c2 == '0' || (c2 >= '3' && c2 <= '9')) {
+                    return "RU";
+                }
+                break;
+            case 'Z':
+                if (c2 >= 'A' && c2 <= 'R') {
+                    return "IT";
+                }
+                break;
         }
         return null;
     }

@@ -22,8 +22,7 @@ import java.util.List;
 
 /**
  * Partially implements the iCalendar format's "VEVENT" format for specifying a
- * calendar event. See RFC 2445. This supports SUMMARY, LOCATION, GEO, DTSTART
- * and DTEND fields.
+ * calendar event. See RFC 2445. This supports SUMMARY, LOCATION, GEO, DTSTART and DTEND fields.
  *
  * @author Sean Owen
  */
@@ -75,24 +74,30 @@ public final class VEventResultParser extends ResultParser {
         }
 
         try {
-            return new CalendarParsedResult(summary, start, end, duration, location, organizer,
-                    attendees, description, latitude, longitude);
+            return new CalendarParsedResult(summary,
+                    start,
+                    end,
+                    duration,
+                    location,
+                    organizer,
+                    attendees,
+                    description,
+                    latitude,
+                    longitude);
         } catch (IllegalArgumentException ignored) {
             return null;
         }
     }
 
-    private static String matchSingleVCardPrefixedField(CharSequence prefix, String rawText,
-            boolean trim) {
-        List<String> values = VCardResultParser.matchSingleVCardPrefixedField(prefix, rawText,
-                trim, false);
+    private static String matchSingleVCardPrefixedField(CharSequence prefix,
+                                                        String rawText,
+                                                        boolean trim) {
+        List<String> values = VCardResultParser.matchSingleVCardPrefixedField(prefix, rawText, trim, false);
         return values == null || values.isEmpty() ? null : values.get(0);
     }
 
-    private static String[] matchVCardPrefixedField(CharSequence prefix, String rawText,
-            boolean trim) {
-        List<List<String>> values = VCardResultParser.matchVCardPrefixedField(prefix, rawText,
-                trim, false);
+    private static String[] matchVCardPrefixedField(CharSequence prefix, String rawText, boolean trim) {
+        List<List<String>> values = VCardResultParser.matchVCardPrefixedField(prefix, rawText, trim, false);
         if (values == null || values.isEmpty()) {
             return null;
         }

@@ -25,11 +25,17 @@ import com.google.zxing.client.android.PreferencesActivity;
  */
 public enum FrontLightMode {
 
-    /** Always on. */
+    /**
+     * Always on.
+     */
     ON,
-    /** On only when ambient light is low. */
+    /**
+     * On only when ambient light is low.
+     */
     AUTO,
-    /** Always off. */
+    /**
+     * Always off.
+     */
     OFF;
 
     private static FrontLightMode parse(String modeString) {
@@ -37,8 +43,7 @@ public enum FrontLightMode {
     }
 
     public static FrontLightMode readPref(SharedPreferences sharedPrefs) {
-        return parse(sharedPrefs
-                .getString(PreferencesActivity.KEY_FRONT_LIGHT_MODE, OFF.toString()));
+        return parse(sharedPrefs.getString(PreferencesActivity.KEY_FRONT_LIGHT_MODE, OFF.toString()));
     }
 
 }

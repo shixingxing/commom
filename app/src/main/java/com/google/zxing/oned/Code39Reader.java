@@ -29,33 +29,29 @@ import java.util.Arrays;
 import java.util.Map;
 
 /**
- * <p>
- * Decodes Code 39 barcodes. This does not support "Full ASCII Code 39" yet.
- * </p>
+ * <p>Decodes Code 39 barcodes. Supports "Full ASCII Code 39" if USE_CODE_39_EXTENDED_MODE is set.</p>
  *
  * @author Sean Owen
  * @see Code93Reader
  */
 public final class Code39Reader extends OneDReader {
 
-    static final String ALPHABET_STRING = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. *$/+%";
-    private static final char[] ALPHABET = ALPHABET_STRING.toCharArray();
+    static final String ALPHABET_STRING = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%";
 
     /**
-     * These represent the encodings of characters, as patterns of wide and
-     * narrow bars. The 9 least-significant bits of each int correspond to the
-     * pattern of wide and narrow, with 1s representing "wide" and 0s
-     * representing narrow.
+     * These represent the encodings of characters, as patterns of wide and narrow bars.
+     * The 9 least-significant bits of each int correspond to the pattern of wide and narrow,
+     * with 1s representing "wide" and 0s representing narrow.
      */
-    static final int[] CHARACTER_ENCODINGS = { 0x034, 0x121, 0x061, 0x160, 0x031, 0x130, 0x070,
-            0x025, 0x124, 0x064, // 0-9
+    static final int[] CHARACTER_ENCODINGS = {
+            0x034, 0x121, 0x061, 0x160, 0x031, 0x130, 0x070, 0x025, 0x124, 0x064, // 0-9
             0x109, 0x049, 0x148, 0x019, 0x118, 0x058, 0x00D, 0x10C, 0x04C, 0x01C, // A-J
             0x103, 0x043, 0x142, 0x013, 0x112, 0x052, 0x007, 0x106, 0x046, 0x016, // K-T
-            0x181, 0x0C1, 0x1C0, 0x091, 0x190, 0x0D0, 0x085, 0x184, 0x0C4, 0x094, // U-*
-            0x0A8, 0x0A2, 0x08A, 0x02A // $-%
+            0x181, 0x0C1, 0x1C0, 0x091, 0x190, 0x0D0, 0x085, 0x184, 0x0C4, 0x0A8, // U-$
+            0x0A2, 0x08A, 0x02A // /-%
     };
 
-    private static final int ASTERISK_ENCODING = CHARACTER_ENCODINGS[39];
+    static final int ASTERISK_ENCODING = 0x094;
 
     private final boolean usingCheckDigit;
     private final boolean extendedMode;
@@ -63,37 +59,33 @@ public final class Code39Reader extends OneDReader {
     private final int[] counters;
 
     /**
-     * Creates a reader that assumes all encoded data is data, and does not
-     * treat the final character as a check digit. It will not decoded
-     * "extended Code 39" sequences.
+     * Creates a reader that assumes all encoded data is data, and does not treat the final
+     * character as a check digit. It will not decoded "extended Code 39" sequences.
      */
     public Code39Reader() {
         this(false);
     }
 
     /**
-     * Creates a reader that can be configured to check the last character as a
-     * check digit. It will not decoded "extended Code 39" sequences.
+     * Creates a reader that can be configured to check the last character as a check digit.
+     * It will not decoded "extended Code 39" sequences.
      *
-     * @param usingCheckDigit
-     *            if true, treat the last data character as a check digit, not
-     *            data, and verify that the checksum passes.
+     * @param usingCheckDigit if true, treat the last data character as a check digit, not
+     *                        data, and verify that the checksum passes.
      */
     public Code39Reader(boolean usingCheckDigit) {
         this(usingCheckDigit, false);
     }
 
     /**
-     * Creates a reader that can be configured to check the last character as a
-     * check digit, or optionally attempt to decode "extended Code 39" sequences
-     * that are used to encode the full ASCII character set.
+     * Creates a reader that can be configured to check the last character as a check digit,
+     * or optionally attempt to decode "extended Code 39" sequences that are used to encode
+     * the full ASCII character set.
      *
-     * @param usingCheckDigit
-     *            if true, treat the last data character as a check digit, not
-     *            data, and verify that the checksum passes.
-     * @param extendedMode
-     *            if true, will attempt to decode extended Code 39 sequences in
-     *            the text.
+     * @param usingCheckDigit if true, treat the last data character as a check digit, not
+     *                        data, and verify that the checksum passes.
+     * @param extendedMode    if true, will attempt to decode extended Code 39 sequences in the
+     *                        text.
      */
     public Code39Reader(boolean usingCheckDigit, boolean extendedMode) {
         this.usingCheckDigit = usingCheckDigit;
@@ -141,8 +133,7 @@ public final class Code39Reader extends OneDReader {
             lastPatternSize += counter;
         }
         int whiteSpaceAfterEnd = nextStart - lastStart - lastPatternSize;
-        // If 50% of last pattern size, following last pattern, is not
-        // whitespace, fail
+        // If 50% of last pattern size, following last pattern, is not whitespace, fail
         // (but if it's whitespace to the very end of the image, that's OK)
         if (nextStart != end && (whiteSpaceAfterEnd * 2) < lastPatternSize) {
             throw NotFoundException.getNotFoundInstance();
@@ -154,7 +145,7 @@ public final class Code39Reader extends OneDReader {
             for (int i = 0; i < max; i++) {
                 total += ALPHABET_STRING.indexOf(decodeRowResult.charAt(i));
             }
-            if (result.charAt(max) != ALPHABET[total % 43]) {
+            if (result.charAt(max) != ALPHABET_STRING.charAt(total % 43)) {
                 throw ChecksumException.getChecksumInstance();
             }
             result.setLength(max);
@@ -172,11 +163,15 @@ public final class Code39Reader extends OneDReader {
             resultString = result.toString();
         }
 
-        float left = (float) (start[1] + start[0]) / 2.0f;
+        float left = (start[1] + start[0]) / 2.0f;
         float right = lastStart + lastPatternSize / 2.0f;
-        return new Result(resultString, null,
-                new ResultPoint[] { new ResultPoint(left, (float) rowNumber),
-                        new ResultPoint(right, (float) rowNumber) }, BarcodeFormat.CODE_39);
+        return new Result(
+                resultString,
+                null,
+                new ResultPoint[]{
+                        new ResultPoint(left, rowNumber),
+                        new ResultPoint(right, rowNumber)},
+                BarcodeFormat.CODE_39);
 
     }
 
@@ -190,21 +185,19 @@ public final class Code39Reader extends OneDReader {
         int patternLength = counters.length;
 
         for (int i = rowOffset; i < width; i++) {
-            if (row.get(i) ^ isWhite) {
+            if (row.get(i) != isWhite) {
                 counters[counterPosition]++;
             } else {
                 if (counterPosition == patternLength - 1) {
-                    // Look for whitespace before start pattern, >= 50% of width
-                    // of start pattern
-                    if (toNarrowWidePattern(counters) == ASTERISK_ENCODING
-                            && row.isRange(Math.max(0, patternStart - ((i - patternStart) / 2)),
-                                    patternStart, false)) {
-                        return new int[] { patternStart, i };
+                    // Look for whitespace before start pattern, >= 50% of width of start pattern
+                    if (toNarrowWidePattern(counters) == ASTERISK_ENCODING &&
+                            row.isRange(Math.max(0, patternStart - ((i - patternStart) / 2)), patternStart, false)) {
+                        return new int[]{patternStart, i};
                     }
                     patternStart += counters[0] + counters[1];
-                    System.arraycopy(counters, 2, counters, 0, patternLength - 2);
-                    counters[patternLength - 2] = 0;
-                    counters[patternLength - 1] = 0;
+                    System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
+                    counters[counterPosition - 1] = 0;
+                    counters[counterPosition] = 0;
                     counterPosition--;
                 } else {
                     counterPosition++;
@@ -216,8 +209,7 @@ public final class Code39Reader extends OneDReader {
         throw NotFoundException.getNotFoundInstance();
     }
 
-    // For efficiency, returns -1 on failure. Not throwing here saved as many as
-    // 700 exceptions
+    // For efficiency, returns -1 on failure. Not throwing here saved as many as 700 exceptions
     // per image when using some of our blackbox images.
     private static int toNarrowWidePattern(int[] counters) {
         int numCounters = counters.length;
@@ -244,15 +236,13 @@ public final class Code39Reader extends OneDReader {
             }
             if (wideCounters == 3) {
                 // Found 3 wide counters, but are they close enough in width?
-                // We can perform a cheap, conservative check to see if any
-                // individual
+                // We can perform a cheap, conservative check to see if any individual
                 // counter is more than 1.5 times the average:
                 for (int i = 0; i < numCounters && wideCounters > 0; i++) {
                     int counter = counters[i];
                     if (counter > maxNarrowCounter) {
                         wideCounters--;
-                        // totalWideCountersWidth = 3 * average, so this checks
-                        // if counter >= 3/2 * average
+                        // totalWideCountersWidth = 3 * average, so this checks if counter >= 3/2 * average
                         if ((counter * 2) >= totalWideCountersWidth) {
                             return -1;
                         }
@@ -267,8 +257,11 @@ public final class Code39Reader extends OneDReader {
     private static char patternToChar(int pattern) throws NotFoundException {
         for (int i = 0; i < CHARACTER_ENCODINGS.length; i++) {
             if (CHARACTER_ENCODINGS[i] == pattern) {
-                return ALPHABET[i];
+                return ALPHABET_STRING.charAt(i);
             }
+        }
+        if (pattern == ASTERISK_ENCODING) {
+            return '*';
         }
         throw NotFoundException.getNotFoundInstance();
     }
@@ -282,42 +275,54 @@ public final class Code39Reader extends OneDReader {
                 char next = encoded.charAt(i + 1);
                 char decodedChar = '\0';
                 switch (c) {
-                case '+':
-                    // +A to +Z map to a to z
-                    if (next >= 'A' && next <= 'Z') {
-                        decodedChar = (char) (next + 32);
-                    } else {
-                        throw FormatException.getFormatInstance();
-                    }
-                    break;
-                case '$':
-                    // $A to $Z map to control codes SH to SB
-                    if (next >= 'A' && next <= 'Z') {
-                        decodedChar = (char) (next - 64);
-                    } else {
-                        throw FormatException.getFormatInstance();
-                    }
-                    break;
-                case '%':
-                    // %A to %E map to control codes ESC to US
-                    if (next >= 'A' && next <= 'E') {
-                        decodedChar = (char) (next - 38);
-                    } else if (next >= 'F' && next <= 'W') {
-                        decodedChar = (char) (next - 11);
-                    } else {
-                        throw FormatException.getFormatInstance();
-                    }
-                    break;
-                case '/':
-                    // /A to /O map to ! to , and /Z maps to :
-                    if (next >= 'A' && next <= 'O') {
-                        decodedChar = (char) (next - 32);
-                    } else if (next == 'Z') {
-                        decodedChar = ':';
-                    } else {
-                        throw FormatException.getFormatInstance();
-                    }
-                    break;
+                    case '+':
+                        // +A to +Z map to a to z
+                        if (next >= 'A' && next <= 'Z') {
+                            decodedChar = (char) (next + 32);
+                        } else {
+                            throw FormatException.getFormatInstance();
+                        }
+                        break;
+                    case '$':
+                        // $A to $Z map to control codes SH to SB
+                        if (next >= 'A' && next <= 'Z') {
+                            decodedChar = (char) (next - 64);
+                        } else {
+                            throw FormatException.getFormatInstance();
+                        }
+                        break;
+                    case '%':
+                        // %A to %E map to control codes ESC to US
+                        if (next >= 'A' && next <= 'E') {
+                            decodedChar = (char) (next - 38);
+                        } else if (next >= 'F' && next <= 'J') {
+                            decodedChar = (char) (next - 11);
+                        } else if (next >= 'K' && next <= 'O') {
+                            decodedChar = (char) (next + 16);
+                        } else if (next >= 'P' && next <= 'T') {
+                            decodedChar = (char) (next + 43);
+                        } else if (next == 'U') {
+                            decodedChar = (char) 0;
+                        } else if (next == 'V') {
+                            decodedChar = '@';
+                        } else if (next == 'W') {
+                            decodedChar = '`';
+                        } else if (next == 'X' || next == 'Y' || next == 'Z') {
+                            decodedChar = (char) 127;
+                        } else {
+                            throw FormatException.getFormatInstance();
+                        }
+                        break;
+                    case '/':
+                        // /A to /O map to ! to , and /Z maps to :
+                        if (next >= 'A' && next <= 'O') {
+                            decodedChar = (char) (next - 32);
+                        } else if (next == 'Z') {
+                            decodedChar = ':';
+                        } else {
+                            throw FormatException.getFormatInstance();
+                        }
+                        break;
                 }
                 decoded.append(decodedChar);
                 // bump up i again since we read two characters

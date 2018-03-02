@@ -31,8 +31,7 @@ import com.google.zxing.qrcode.encoder.ByteMatrix;
 import java.util.Map;
 
 /**
- * This object renders a Data Matrix code as a BitMatrix 2D array of greyscale
- * values.
+ * This object renders a Data Matrix code as a BitMatrix 2D array of greyscale values.
  *
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Guillaume Le Biller Added to zxing lib.
@@ -45,8 +44,7 @@ public final class DataMatrixWriter implements Writer {
     }
 
     @Override
-    public BitMatrix encode(String contents, BarcodeFormat format, int width, int height,
-            Map<EncodeHintType, ?> hints) {
+    public BitMatrix encode(String contents, BarcodeFormat format, int width, int height, Map<EncodeHintType, ?> hints) {
 
         if (contents.isEmpty()) {
             throw new IllegalArgumentException("Found empty contents");
@@ -57,8 +55,7 @@ public final class DataMatrixWriter implements Writer {
         }
 
         if (width < 0 || height < 0) {
-            throw new IllegalArgumentException("Requested dimensions are too small: " + width + 'x'
-                    + height);
+            throw new IllegalArgumentException("Requested dimensions can't be negative: " + width + 'x' + height);
         }
 
         // Try to get force shape & min / max size
@@ -66,53 +63,51 @@ public final class DataMatrixWriter implements Writer {
         Dimension minSize = null;
         Dimension maxSize = null;
         if (hints != null) {
-            SymbolShapeHint requestedShape = (SymbolShapeHint) hints
-                    .get(EncodeHintType.DATA_MATRIX_SHAPE);
+            SymbolShapeHint requestedShape = (SymbolShapeHint) hints.get(EncodeHintType.DATA_MATRIX_SHAPE);
             if (requestedShape != null) {
                 shape = requestedShape;
             }
+            @SuppressWarnings("deprecation")
             Dimension requestedMinSize = (Dimension) hints.get(EncodeHintType.MIN_SIZE);
             if (requestedMinSize != null) {
                 minSize = requestedMinSize;
             }
+            @SuppressWarnings("deprecation")
             Dimension requestedMaxSize = (Dimension) hints.get(EncodeHintType.MAX_SIZE);
             if (requestedMaxSize != null) {
                 maxSize = requestedMaxSize;
             }
         }
 
-        // 1. step: Data encodation
+
+        //1. step: Data encodation
         String encoded = HighLevelEncoder.encodeHighLevel(contents, shape, minSize, maxSize);
 
         SymbolInfo symbolInfo = SymbolInfo.lookup(encoded.length(), shape, minSize, maxSize, true);
 
-        // 2. step: ECC generation
+        //2. step: ECC generation
         String codewords = ErrorCorrection.encodeECC200(encoded, symbolInfo);
 
-        // 3. step: Module placement in Matrix
-        DefaultPlacement placement = new DefaultPlacement(codewords,
-                symbolInfo.getSymbolDataWidth(), symbolInfo.getSymbolDataHeight());
+        //3. step: Module placement in Matrix
+        DefaultPlacement placement = new DefaultPlacement(codewords, symbolInfo.getSymbolDataWidth(), symbolInfo.getSymbolDataHeight());
         placement.place();
 
-        // 4. step: low-level encoding
-        return encodeLowLevel(placement, symbolInfo);
+        //4. step: low-level encoding
+        return encodeLowLevel(placement, symbolInfo, width, height);
     }
 
     /**
      * Encode the given symbol info to a bit matrix.
      *
-     * @param placement
-     *            The DataMatrix placement.
-     * @param symbolInfo
-     *            The symbol info to encode.
+     * @param placement  The DataMatrix placement.
+     * @param symbolInfo The symbol info to encode.
      * @return The bit matrix generated.
      */
-    private static BitMatrix encodeLowLevel(DefaultPlacement placement, SymbolInfo symbolInfo) {
+    private static BitMatrix encodeLowLevel(DefaultPlacement placement, SymbolInfo symbolInfo, int width, int height) {
         int symbolWidth = symbolInfo.getSymbolDataWidth();
         int symbolHeight = symbolInfo.getSymbolDataHeight();
 
-        ByteMatrix matrix = new ByteMatrix(symbolInfo.getSymbolWidth(),
-                symbolInfo.getSymbolHeight());
+        ByteMatrix matrix = new ByteMatrix(symbolInfo.getSymbolWidth(), symbolInfo.getSymbolHeight());
 
         int matrixY = 0;
 
@@ -154,27 +149,45 @@ public final class DataMatrixWriter implements Writer {
             }
         }
 
-        return convertByteMatrixToBitMatrix(matrix);
+        return convertByteMatrixToBitMatrix(matrix, width, height);
     }
 
     /**
      * Convert the ByteMatrix to BitMatrix.
      *
-     * @param matrix
-     *            The input matrix.
+     * @param reqHeight The requested height of the image (in pixels) with the Datamatrix code
+     * @param reqWidth  The requested width of the image (in pixels) with the Datamatrix code
+     * @param matrix    The input matrix.
      * @return The output matrix.
      */
-    private static BitMatrix convertByteMatrixToBitMatrix(ByteMatrix matrix) {
-        int matrixWidgth = matrix.getWidth();
+    private static BitMatrix convertByteMatrixToBitMatrix(ByteMatrix matrix, int reqWidth, int reqHeight) {
+        int matrixWidth = matrix.getWidth();
         int matrixHeight = matrix.getHeight();
+        int outputWidth = Math.max(reqWidth, matrixWidth);
+        int outputHeight = Math.max(reqHeight, matrixHeight);
 
-        BitMatrix output = new BitMatrix(matrixWidgth, matrixHeight);
+        int multiple = Math.min(outputWidth / matrixWidth, outputHeight / matrixHeight);
+
+        int leftPadding = (outputWidth - (matrixWidth * multiple)) / 2;
+        int topPadding = (outputHeight - (matrixHeight * multiple)) / 2;
+
+        BitMatrix output;
+
+        // remove padding if requested width and height are too small
+        if (reqHeight < matrixHeight || reqWidth < matrixWidth) {
+            leftPadding = 0;
+            topPadding = 0;
+            output = new BitMatrix(matrixWidth, matrixHeight);
+        } else {
+            output = new BitMatrix(reqWidth, reqHeight);
+        }
+
         output.clear();
-        for (int i = 0; i < matrixWidgth; i++) {
-            for (int j = 0; j < matrixHeight; j++) {
-                // Zero is white in the bytematrix
-                if (matrix.get(i, j) == 1) {
-                    output.set(i, j);
+        for (int inputY = 0, outputY = topPadding; inputY < matrixHeight; inputY++, outputY += multiple) {
+            // Write the contents of this row of the bytematrix
+            for (int inputX = 0, outputX = leftPadding; inputX < matrixWidth; inputX++, outputX += multiple) {
+                if (matrix.get(inputX, inputY) == 1) {
+                    output.setRegion(outputX, outputY, multiple, multiple);
                 }
             }
         }

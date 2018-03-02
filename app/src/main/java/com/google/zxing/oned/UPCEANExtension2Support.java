@@ -34,8 +34,7 @@ final class UPCEANExtension2Support {
     private final int[] decodeMiddleCounters = new int[4];
     private final StringBuilder decodeRowStringBuffer = new StringBuilder();
 
-    Result decodeRow(int rowNumber, BitArray row, int[] extensionStartRange)
-            throws NotFoundException {
+    Result decodeRow(int rowNumber, BitArray row, int[] extensionStartRange) throws NotFoundException {
 
         StringBuilder result = decodeRowStringBuffer;
         result.setLength(0);
@@ -44,18 +43,21 @@ final class UPCEANExtension2Support {
         String resultString = result.toString();
         Map<ResultMetadataType, Object> extensionData = parseExtensionString(resultString);
 
-        Result extensionResult = new Result(resultString, null, new ResultPoint[] {
-                new ResultPoint((extensionStartRange[0] + extensionStartRange[1]) / 2.0f,
-                        (float) rowNumber), new ResultPoint((float) end, (float) rowNumber), },
-                BarcodeFormat.UPC_EAN_EXTENSION);
+        Result extensionResult =
+                new Result(resultString,
+                        null,
+                        new ResultPoint[]{
+                                new ResultPoint((extensionStartRange[0] + extensionStartRange[1]) / 2.0f, rowNumber),
+                                new ResultPoint(end, rowNumber),
+                        },
+                        BarcodeFormat.UPC_EAN_EXTENSION);
         if (extensionData != null) {
             extensionResult.putAllMetadata(extensionData);
         }
         return extensionResult;
     }
 
-    int decodeMiddle(BitArray row, int[] startRange, StringBuilder resultString)
-            throws NotFoundException {
+    private int decodeMiddle(BitArray row, int[] startRange, StringBuilder resultString) throws NotFoundException {
         int[] counters = decodeMiddleCounters;
         counters[0] = 0;
         counters[1] = 0;
@@ -67,8 +69,7 @@ final class UPCEANExtension2Support {
         int checkParity = 0;
 
         for (int x = 0; x < 2 && rowOffset < end; x++) {
-            int bestMatch = UPCEANReader.decodeDigit(row, counters, rowOffset,
-                    UPCEANReader.L_AND_G_PATTERNS);
+            int bestMatch = UPCEANReader.decodeDigit(row, counters, rowOffset, UPCEANReader.L_AND_G_PATTERNS);
             resultString.append((char) ('0' + bestMatch % 10));
             for (int counter : counters) {
                 rowOffset += counter;
@@ -95,11 +96,9 @@ final class UPCEANExtension2Support {
     }
 
     /**
-     * @param raw
-     *            raw content of extension
+     * @param raw raw content of extension
      * @return formatted interpretation of raw content as a {@link Map} mapping
-     *         one {@link ResultMetadataType} to appropriate value, or
-     *         {@code null} if not known
+     * one {@link ResultMetadataType} to appropriate value, or {@code null} if not known
      */
     private static Map<ResultMetadataType, Object> parseExtensionString(String raw) {
         if (raw.length() != 2) {

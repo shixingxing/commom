@@ -27,8 +27,7 @@ final class ExpandedRow {
     private final List<ExpandedPair> pairs;
     private final int rowNumber;
     /**
-     * Did this row of the image have to be reversed (mirrored) to recognize the
-     * pairs?
+     * Did this row of the image have to be reversed (mirrored) to recognize the pairs?
      */
     private final boolean wasReversed;
 

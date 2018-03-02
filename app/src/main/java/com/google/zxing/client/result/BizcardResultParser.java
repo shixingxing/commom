@@ -51,12 +51,27 @@ public final class BizcardResultParser extends AbstractDoCoMoResultParser {
         String phoneNumber3 = matchSingleDoCoMoPrefixedField("F:", rawText, true);
         String email = matchSingleDoCoMoPrefixedField("E:", rawText, true);
 
-        return new AddressBookParsedResult(maybeWrap(fullName), null, null, buildPhoneNumbers(
-                phoneNumber1, phoneNumber2, phoneNumber3), null, maybeWrap(email), null, null,
-                null, addresses, null, org, null, title, null, null);
+        return new AddressBookParsedResult(maybeWrap(fullName),
+                null,
+                null,
+                buildPhoneNumbers(phoneNumber1, phoneNumber2, phoneNumber3),
+                null,
+                maybeWrap(email),
+                null,
+                null,
+                null,
+                addresses,
+                null,
+                org,
+                null,
+                title,
+                null,
+                null);
     }
 
-    private static String[] buildPhoneNumbers(String number1, String number2, String number3) {
+    private static String[] buildPhoneNumbers(String number1,
+                                              String number2,
+                                              String number3) {
         List<String> numbers = new ArrayList<>(3);
         if (number1 != null) {
             numbers.add(number1);

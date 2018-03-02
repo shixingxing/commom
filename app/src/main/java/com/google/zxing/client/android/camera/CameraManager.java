@@ -16,53 +16,51 @@
 
 package com.google.zxing.client.android.camera;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 
 import com.google.zxing.PlanarYUVLuminanceSource;
+import com.google.zxing.client.android.camera.open.OpenCamera;
 import com.google.zxing.client.android.camera.open.OpenCameraInterface;
 
 import java.io.IOException;
 
 /**
- * This object wraps the Camera service object and expects to be the only one
- * talking to it. The implementation encapsulates the steps needed to take
- * preview-sized images, which are used for both preview and decoding.
+ * This object wraps the Camera service object and expects to be the only one talking to it. The
+ * implementation encapsulates the steps needed to take preview-sized images, which are used for
+ * both preview and decoding.
  *
  * @author dswitkin@google.com (Daniel Switkin)
  */
+@SuppressWarnings("deprecation") // camera APIs
 public final class CameraManager {
 
     private static final String TAG = CameraManager.class.getSimpleName();
 
     private static final int MIN_FRAME_WIDTH = 240;
     private static final int MIN_FRAME_HEIGHT = 240;
-    private static final int MAX_FRAME_WIDTH = 1440; // = 6/8 * 1920
-    private static final int MAX_FRAME_HEIGHT = 810; // = 6/8 * 1080
+    private static final int MAX_FRAME_WIDTH = 1200; // = 5/8 * 1920
+    private static final int MAX_FRAME_HEIGHT = 675; // = 5/8 * 1080
 
     private final Context context;
     private final CameraConfigurationManager configManager;
-    private Camera camera;
+    private OpenCamera camera;
     private AutoFocusManager autoFocusManager;
     private Rect framingRect;
     private Rect framingRectInPreview;
     private boolean initialized;
     private boolean previewing;
-    private int requestedCameraId = -1;
+    private int requestedCameraId = OpenCameraInterface.NO_REQUESTED_CAMERA;
     private int requestedFramingRectWidth;
     private int requestedFramingRectHeight;
     /**
-     * Preview frames are delivered here, which we pass on to the registered
-     * handler. Make sure to clear the handler so it will only receive one
-     * message.
+     * Preview frames are delivered here, which we pass on to the registered handler. Make sure to
+     * clear the handler so it will only receive one message.
      */
     private final PreviewCallback previewCallback;
 
@@ -75,28 +73,18 @@ public final class CameraManager {
     /**
      * Opens the camera driver and initializes the hardware parameters.
      *
-     * @param holder
-     *            The surface object which the camera will draw preview frames
-     *            into.
-     * @throws IOException
-     *             Indicates the camera driver failed to open.
+     * @param holder The surface object which the camera will draw preview frames into.
+     * @throws IOException Indicates the camera driver failed to open.
      */
     public synchronized void openDriver(SurfaceHolder holder) throws IOException {
-        Camera theCamera = camera;
+        OpenCamera theCamera = camera;
         if (theCamera == null) {
-
-            if (requestedCameraId >= 0) {
-                theCamera = OpenCameraInterface.open(requestedCameraId);
-            } else {
-                theCamera = OpenCameraInterface.open();
-            }
-
+            theCamera = OpenCameraInterface.open(requestedCameraId);
             if (theCamera == null) {
-                throw new IOException();
+                throw new IOException("Camera.open() failed to return object from driver");
             }
             camera = theCamera;
         }
-        theCamera.setPreviewDisplay(holder);
 
         if (!initialized) {
             initialized = true;
@@ -108,10 +96,9 @@ public final class CameraManager {
             }
         }
 
-        Camera.Parameters parameters = theCamera.getParameters();
-        String parametersFlattened = parameters == null ? null : parameters.flatten(); // Save
-                                                                                       // these,
-                                                                                       // temporarily
+        Camera cameraObject = theCamera.getCamera();
+        Camera.Parameters parameters = cameraObject.getParameters();
+        String parametersFlattened = parameters == null ? null : parameters.flatten(); // Save these, temporarily
         try {
             configManager.setDesiredCameraParameters(theCamera, false);
         } catch (RuntimeException re) {
@@ -120,10 +107,10 @@ public final class CameraManager {
             Log.i(TAG, "Resetting to saved camera params: " + parametersFlattened);
             // Reset:
             if (parametersFlattened != null) {
-                parameters = theCamera.getParameters();
+                parameters = cameraObject.getParameters();
                 parameters.unflatten(parametersFlattened);
                 try {
-                    theCamera.setParameters(parameters);
+                    cameraObject.setParameters(parameters);
                     configManager.setDesiredCameraParameters(theCamera, true);
                 } catch (RuntimeException re2) {
                     // Well, darn. Give up
@@ -131,6 +118,7 @@ public final class CameraManager {
                 }
             }
         }
+        cameraObject.setPreviewDisplay(holder);
 
     }
 
@@ -143,10 +131,9 @@ public final class CameraManager {
      */
     public synchronized void closeDriver() {
         if (camera != null) {
-            camera.release();
+            camera.getCamera().release();
             camera = null;
-            // Make sure to clear these each time we close the camera, so that
-            // any scanning rect
+            // Make sure to clear these each time we close the camera, so that any scanning rect
             // requested by intent is forgotten.
             framingRect = null;
             framingRectInPreview = null;
@@ -157,11 +144,11 @@ public final class CameraManager {
      * Asks the camera hardware to begin drawing preview frames to the screen.
      */
     public synchronized void startPreview() {
-        Camera theCamera = camera;
+        OpenCamera theCamera = camera;
         if (theCamera != null && !previewing) {
-            theCamera.startPreview();
+            theCamera.getCamera().startPreview();
             previewing = true;
-            autoFocusManager = new AutoFocusManager(context, camera);
+            autoFocusManager = new AutoFocusManager(context, theCamera.getCamera());
         }
     }
 
@@ -174,57 +161,53 @@ public final class CameraManager {
             autoFocusManager = null;
         }
         if (camera != null && previewing) {
-            camera.stopPreview();
+            camera.getCamera().stopPreview();
             previewCallback.setHandler(null, 0);
             previewing = false;
         }
     }
 
     /**
-     * Convenience method for
-     * {@link com.google.zxing.client.android.CaptureActivity}
+     * Convenience method for {@link com.google.zxing.client.android.CaptureActivity}
      *
-     * @param newSetting
-     *            if {@code true}, light should be turned on if currently off.
-     *            And vice versa.
+     * @param newSetting if {@code true}, light should be turned on if currently off. And vice versa.
      */
     public synchronized void setTorch(boolean newSetting) {
-        if (newSetting != configManager.getTorchState(camera)) {
-            if (camera != null) {
-                if (autoFocusManager != null) {
-                    autoFocusManager.stop();
-                }
-                configManager.setTorch(camera, newSetting);
-                if (autoFocusManager != null) {
-                    autoFocusManager.start();
-                }
+        OpenCamera theCamera = camera;
+        if (theCamera != null && newSetting != configManager.getTorchState(theCamera.getCamera())) {
+            boolean wasAutoFocusManager = autoFocusManager != null;
+            if (wasAutoFocusManager) {
+                autoFocusManager.stop();
+                autoFocusManager = null;
+            }
+            configManager.setTorch(theCamera.getCamera(), newSetting);
+            if (wasAutoFocusManager) {
+                autoFocusManager = new AutoFocusManager(context, theCamera.getCamera());
+                autoFocusManager.start();
             }
         }
     }
 
     /**
-     * A single preview frame will be returned to the handler supplied. The data
-     * will arrive as byte[] in the message.obj field, with width and height
-     * encoded as message.arg1 and message.arg2, respectively.
+     * A single preview frame will be returned to the handler supplied. The data will arrive as byte[]
+     * in the message.obj field, with width and height encoded as message.arg1 and message.arg2,
+     * respectively.
      *
-     * @param handler
-     *            The handler to send the message to.
-     * @param message
-     *            The what field of the message to be sent.
+     * @param handler The handler to send the message to.
+     * @param message The what field of the message to be sent.
      */
     public synchronized void requestPreviewFrame(Handler handler, int message) {
-        Camera theCamera = camera;
+        OpenCamera theCamera = camera;
         if (theCamera != null && previewing) {
             previewCallback.setHandler(handler, message);
-            theCamera.setOneShotPreviewCallback(previewCallback);
+            theCamera.getCamera().setOneShotPreviewCallback(previewCallback);
         }
     }
 
     /**
-     * Calculates the framing rect which the UI should draw to show the user
-     * where to place the barcode. This target helps with alignment as well as
-     * forces the user to hold the device far enough away to ensure the image
-     * will be in focus.
+     * Calculates the framing rect which the UI should draw to show the user where to place the
+     * barcode. This target helps with alignment as well as forces the user to hold the device
+     * far enough away to ensure the image will be in focus.
      *
      * @return The rectangle to draw on screen in window coordinates.
      */
@@ -239,10 +222,9 @@ public final class CameraManager {
                 return null;
             }
 
-            int width = findDesiredDimensionInRange(screenResolution.x, MIN_FRAME_WIDTH,
-                    MAX_FRAME_WIDTH);
-            int height = findDesiredDimensionInRange(screenResolution.y, MIN_FRAME_HEIGHT,
-                    MAX_FRAME_HEIGHT);
+            int width = findDesiredDimensionInRange(screenResolution.x, MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+            int height = width;
+//      int height = findDesiredDimensionInRange(screenResolution.y, MIN_FRAME_HEIGHT, MAX_FRAME_HEIGHT);
 
             int leftOffset = (screenResolution.x - width) / 2;
             int topOffset = (screenResolution.y - height) / 2;
@@ -253,7 +235,7 @@ public final class CameraManager {
     }
 
     private static int findDesiredDimensionInRange(int resolution, int hardMin, int hardMax) {
-        int dim = 6 * resolution / 8; // Target 6/8 of each dimension
+        int dim = 5 * resolution / 8; // Target 5/8 of each dimension
         if (dim < hardMin) {
             return hardMin;
         }
@@ -264,11 +246,10 @@ public final class CameraManager {
     }
 
     /**
-     * Like {@link #getFramingRect} but coordinates are in terms of the preview
-     * frame, not UI / screen.
+     * Like {@link #getFramingRect} but coordinates are in terms of the preview frame,
+     * not UI / screen.
      *
-     * @return {@link Rect} expressing barcode scan area in terms of the preview
-     *         size
+     * @return {@link Rect} expressing barcode scan area in terms of the preview size
      */
     public synchronized Rect getFramingRectInPreview() {
         if (framingRectInPreview == null) {
@@ -288,38 +269,27 @@ public final class CameraManager {
             rect.top = rect.top * cameraResolution.y / screenResolution.y;
             rect.bottom = rect.bottom * cameraResolution.y / screenResolution.y;
             framingRectInPreview = rect;
-
-            // Rect rect = new Rect();
-            // Point cameraResolution = configManager.getCameraResolution();
-            // rect.left = 0;
-            // rect.right = cameraResolution.x;
-            // rect.top = 0;
-            // rect.bottom = cameraResolution.y;
-            // framingRectInPreview = rect;
         }
         return framingRectInPreview;
     }
+
 
     /**
      * Allows third party apps to specify the camera ID, rather than determine
      * it automatically based on available cameras and their orientation.
      *
-     * @param cameraId
-     *            camera ID of the camera to use. A negative value means
-     *            "no preference".
+     * @param cameraId camera ID of the camera to use. A negative value means "no preference".
      */
     public synchronized void setManualCameraId(int cameraId) {
         requestedCameraId = cameraId;
     }
 
     /**
-     * Allows third party apps to specify the scanning rectangle dimensions,
-     * rather than determine them automatically based on screen resolution.
+     * Allows third party apps to specify the scanning rectangle dimensions, rather than determine
+     * them automatically based on screen resolution.
      *
-     * @param width
-     *            The width in pixels to scan.
-     * @param height
-     *            The height in pixels to scan.
+     * @param width  The width in pixels to scan.
+     * @param height The height in pixels to scan.
      */
     public synchronized void setManualFramingRect(int width, int height) {
         if (initialized) {
@@ -342,15 +312,12 @@ public final class CameraManager {
     }
 
     /**
-     * A factory method to build the appropriate LuminanceSource object based on
-     * the format of the preview buffers, as described by Camera.Parameters.
+     * A factory method to build the appropriate LuminanceSource object based on the format
+     * of the preview buffers, as described by Camera.Parameters.
      *
-     * @param data
-     *            A preview frame.
-     * @param width
-     *            The width of the image.
-     * @param height
-     *            The height of the image.
+     * @param data   A preview frame.
+     * @param width  The width of the image.
+     * @param height The height of the image.
      * @return A PlanarYUVLuminanceSource instance.
      */
     public PlanarYUVLuminanceSource buildLuminanceSource(byte[] data, int width, int height) {
@@ -359,49 +326,9 @@ public final class CameraManager {
             return null;
         }
         // Go ahead and assume it's YUV rather than die.
-        return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top, rect.width(),
-                rect.height(), false);
-    }
-
-    public void setDisplayOrientation(Activity activity) {
-        if (camera != null) {
-            if (requestedCameraId >= 0) {
-                camera.setDisplayOrientation(getPreviewDegree(activity, requestedCameraId));
-            } else {
-                camera.setDisplayOrientation(getPreviewDegree(activity,
-                        CameraInfo.CAMERA_FACING_BACK));
-            }
-        }
-    }
-
-    private int getPreviewDegree(Activity activity, int cameraId) {
-        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
-        android.hardware.Camera.getCameraInfo(cameraId, info);
-        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-        int degrees = 0;
-        switch (rotation) {
-        case Surface.ROTATION_0:
-            degrees = 0;
-            break;
-        case Surface.ROTATION_90:
-            degrees = 90;
-            break;
-        case Surface.ROTATION_180:
-            degrees = 180;
-            break;
-        case Surface.ROTATION_270:
-            degrees = 270;
-            break;
-        }
-
-        int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360; // compensate the mirror
-        } else { // back-facing
-            result = (info.orientation - degrees + 360) % 360;
-        }
-        return result;
+        return new PlanarYUVLuminanceSource(data, width, height, 0, 0, width, height, false);
+//    return new PlanarYUVLuminanceSource(data, width, height, rect.left, rect.top,
+//                                        rect.width(), rect.height(), false);
     }
 
 }

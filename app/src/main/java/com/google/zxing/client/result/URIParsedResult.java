@@ -19,6 +19,8 @@ package com.google.zxing.client.result;
 import java.util.regex.Pattern;
 
 /**
+ * A simple result type encapsulating a URI that has no further interpretation.
+ *
  * @author Sean Owen
  */
 public final class URIParsedResult extends ParsedResult {
@@ -43,13 +45,12 @@ public final class URIParsedResult extends ParsedResult {
     }
 
     /**
-     * @return true if the URI contains suspicious patterns that may suggest it
-     *         intends to mislead the user about its true nature. At the moment
-     *         this looks for the presence of user/password syntax in the
-     *         host/authority portion of a URI which may be used in attempts to
-     *         make the URI's host appear to be other than it is. Example:
-     *         http://yourbank.com@phisher.com This URI connects to phisher.com
-     *         but may appear to connect to yourbank.com at first glance.
+     * @return true if the URI contains suspicious patterns that may suggest it intends to
+     * mislead the user about its true nature. At the moment this looks for the presence
+     * of user/password syntax in the host/authority portion of a URI which may be used
+     * in attempts to make the URI's host appear to be other than it is. Example:
+     * http://yourbank.com@phisher.com  This URI connects to phisher.com but may appear
+     * to connect to yourbank.com at first glance.
      */
     public boolean isPossiblyMaliciousURI() {
         return USER_IN_HOST.matcher(uri).find();
@@ -64,18 +65,15 @@ public final class URIParsedResult extends ParsedResult {
     }
 
     /**
-     * Transforms a string that represents a URI into something more proper, by
-     * adding or canonicalizing the protocol.
+     * Transforms a string that represents a URI into something more proper, by adding or canonicalizing
+     * the protocol.
      */
     private static String massageURI(String uri) {
         uri = uri.trim();
         int protocolEnd = uri.indexOf(':');
-        if (protocolEnd < 0) {
-            // No protocol, assume http
-            uri = "http://" + uri;
-        } else if (isColonFollowedByPortNumber(uri, protocolEnd)) {
-            // Found a colon, but it looks like it is after the host, so the
-            // protocol is still missing
+        if (protocolEnd < 0 || isColonFollowedByPortNumber(uri, protocolEnd)) {
+            // No protocol, or found a colon, but it looks like it is after the host, so the protocol is still missing,
+            // so assume http
             uri = "http://" + uri;
         }
         return uri;
@@ -89,5 +87,6 @@ public final class URIParsedResult extends ParsedResult {
         }
         return ResultParser.isSubstringOfDigits(uri, start, nextSlash - start);
     }
+
 
 }

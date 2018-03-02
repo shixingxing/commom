@@ -21,8 +21,8 @@ import com.google.zxing.Dimension;
 import java.util.Arrays;
 
 /**
- * DataMatrix ECC 200 data encoder following the algorithm described in ISO/IEC
- * 16022:200(E) in annex S.
+ * DataMatrix ECC 200 data encoder following the algorithm described in ISO/IEC 16022:200(E) in
+ * annex S.
  */
 public final class HighLevelEncoder {
 
@@ -41,15 +41,15 @@ public final class HighLevelEncoder {
     /**
      * FNC1 Codeword
      */
-    // private static final char FNC1 = 232;
+    //private static final char FNC1 = 232;
     /**
      * Structured Append Codeword
      */
-    // private static final char STRUCTURED_APPEND = 233;
+    //private static final char STRUCTURED_APPEND = 233;
     /**
      * Reader Programming
      */
-    // private static final char READER_PROGRAMMING = 234;
+    //private static final char READER_PROGRAMMING = 234;
     /**
      * Upper Shift
      */
@@ -77,7 +77,7 @@ public final class HighLevelEncoder {
     /**
      * ECI character (Extended Channel Interpretation)
      */
-    // private static final char ECI = 241;
+    //private static final char ECI = 241;
 
     /**
      * Unlatch from C40 encodation
@@ -111,33 +111,31 @@ public final class HighLevelEncoder {
     private HighLevelEncoder() {
     }
 
-    /*
-     * Converts the message to a byte array using the default encoding (cp437)
-     * as defined by the specification
-     * 
-     * @param msg the message
-     * 
-     * @return the byte array of the message
-     */
+  /*
+   * Converts the message to a byte array using the default encoding (cp437) as defined by the
+   * specification
+   *
+   * @param msg the message
+   * @return the byte array of the message
+   */
 
-    /*
-     * public static byte[] getBytesForMessage(String msg) { return
-     * msg.getBytes(Charset.forName("cp437")); //See 4.4.3 and annex B of
-     * ISO/IEC 15438:2001(E) }
-     */
+  /*
+  public static byte[] getBytesForMessage(String msg) {
+    return msg.getBytes(Charset.forName("cp437")); //See 4.4.3 and annex B of ISO/IEC 15438:2001(E)
+  }
+   */
 
     private static char randomize253State(char ch, int codewordPosition) {
         int pseudoRandom = ((149 * codewordPosition) % 253) + 1;
         int tempVariable = ch + pseudoRandom;
-        return tempVariable <= 254 ? (char) tempVariable : (char) (tempVariable - 254);
+        return (char) (tempVariable <= 254 ? tempVariable : tempVariable - 254);
     }
 
     /**
-     * Performs message encoding of a DataMatrix message using the algorithm
-     * described in annex P of ISO/IEC 16022:2000(E).
+     * Performs message encoding of a DataMatrix message using the algorithm described in annex P
+     * of ISO/IEC 16022:2000(E).
      *
-     * @param msg
-     *            the message
+     * @param msg the message
      * @return the encoded message (the char values range from 0 to 255)
      */
     public static String encodeHighLevel(String msg) {
@@ -145,26 +143,25 @@ public final class HighLevelEncoder {
     }
 
     /**
-     * Performs message encoding of a DataMatrix message using the algorithm
-     * described in annex P of ISO/IEC 16022:2000(E).
+     * Performs message encoding of a DataMatrix message using the algorithm described in annex P
+     * of ISO/IEC 16022:2000(E).
      *
-     * @param msg
-     *            the message
-     * @param shape
-     *            requested shape. May be {@code SymbolShapeHint.FORCE_NONE},
-     *            {@code SymbolShapeHint.FORCE_SQUARE} or
-     *            {@code SymbolShapeHint.FORCE_RECTANGLE}.
-     * @param minSize
-     *            the minimum symbol size constraint or null for no constraint
-     * @param maxSize
-     *            the maximum symbol size constraint or null for no constraint
+     * @param msg     the message
+     * @param shape   requested shape. May be {@code SymbolShapeHint.FORCE_NONE},
+     *                {@code SymbolShapeHint.FORCE_SQUARE} or {@code SymbolShapeHint.FORCE_RECTANGLE}.
+     * @param minSize the minimum symbol size constraint or null for no constraint
+     * @param maxSize the maximum symbol size constraint or null for no constraint
      * @return the encoded message (the char values range from 0 to 255)
      */
-    public static String encodeHighLevel(String msg, SymbolShapeHint shape, Dimension minSize,
-            Dimension maxSize) {
-        // the codewords 0..255 are encoded as Unicode characters
-        Encoder[] encoders = { new ASCIIEncoder(), new C40Encoder(), new TextEncoder(),
-                new X12Encoder(), new EdifactEncoder(), new Base256Encoder() };
+    public static String encodeHighLevel(String msg,
+                                         SymbolShapeHint shape,
+                                         Dimension minSize,
+                                         Dimension maxSize) {
+        //the codewords 0..255 are encoded as Unicode characters
+        Encoder[] encoders = {
+                new ASCIIEncoder(), new C40Encoder(), new TextEncoder(),
+                new X12Encoder(), new EdifactEncoder(), new Base256Encoder()
+        };
 
         EncoderContext context = new EncoderContext(msg);
         context.setSymbolShape(shape);
@@ -180,7 +177,7 @@ public final class HighLevelEncoder {
             context.pos += MACRO_06_HEADER.length();
         }
 
-        int encodingMode = ASCII_ENCODATION; // Default mode
+        int encodingMode = ASCII_ENCODATION; //Default mode
         while (context.hasMoreCharacters()) {
             encoders[encodingMode].encode(context);
             if (context.getNewEncoding() >= 0) {
@@ -191,12 +188,13 @@ public final class HighLevelEncoder {
         int len = context.getCodewordCount();
         context.updateSymbolInfo();
         int capacity = context.getSymbolInfo().getDataCapacity();
-        if (len < capacity) {
-            if (encodingMode != ASCII_ENCODATION && encodingMode != BASE256_ENCODATION) {
-                context.writeCodeword('\u00fe'); // Unlatch (254)
-            }
+        if (len < capacity &&
+                encodingMode != ASCII_ENCODATION &&
+                encodingMode != BASE256_ENCODATION &&
+                encodingMode != EDIFACT_ENCODATION) {
+            context.writeCodeword('\u00fe'); //Unlatch (254)
         }
-        // Padding
+        //Padding
         StringBuilder codewords = context.getCodewords();
         if (codewords.length() < capacity) {
             codewords.append(PAD);
@@ -213,17 +211,17 @@ public final class HighLevelEncoder {
             return currentMode;
         }
         float[] charCounts;
-        // step J
+        //step J
         if (currentMode == ASCII_ENCODATION) {
-            charCounts = new float[] { 0, 1, 1, 1, 1, 1.25f };
+            charCounts = new float[]{0, 1, 1, 1, 1, 1.25f};
         } else {
-            charCounts = new float[] { 1, 2, 2, 2, 2, 2.25f };
+            charCounts = new float[]{1, 2, 2, 2, 2, 2.25f};
             charCounts[currentMode] = 0;
         }
 
         int charsProcessed = 0;
         while (true) {
-            // step K
+            //step K
             if ((startpos + charsProcessed) == msg.length()) {
                 int min = Integer.MAX_VALUE;
                 byte[] mins = new byte[6];
@@ -252,18 +250,18 @@ public final class HighLevelEncoder {
             char c = msg.charAt(startpos + charsProcessed);
             charsProcessed++;
 
-            // step L
+            //step L
             if (isDigit(c)) {
-                charCounts[ASCII_ENCODATION] += 0.5;
+                charCounts[ASCII_ENCODATION] += 0.5f;
             } else if (isExtendedASCII(c)) {
-                charCounts[ASCII_ENCODATION] = (int) Math.ceil(charCounts[ASCII_ENCODATION]);
-                charCounts[ASCII_ENCODATION] += 2;
+                charCounts[ASCII_ENCODATION] = (float) Math.ceil(charCounts[ASCII_ENCODATION]);
+                charCounts[ASCII_ENCODATION] += 2.0f;
             } else {
-                charCounts[ASCII_ENCODATION] = (int) Math.ceil(charCounts[ASCII_ENCODATION]);
+                charCounts[ASCII_ENCODATION] = (float) Math.ceil(charCounts[ASCII_ENCODATION]);
                 charCounts[ASCII_ENCODATION]++;
             }
 
-            // step M
+            //step M
             if (isNativeC40(c)) {
                 charCounts[C40_ENCODATION] += 2.0f / 3.0f;
             } else if (isExtendedASCII(c)) {
@@ -272,7 +270,7 @@ public final class HighLevelEncoder {
                 charCounts[C40_ENCODATION] += 4.0f / 3.0f;
             }
 
-            // step N
+            //step N
             if (isNativeText(c)) {
                 charCounts[TEXT_ENCODATION] += 2.0f / 3.0f;
             } else if (isExtendedASCII(c)) {
@@ -281,7 +279,7 @@ public final class HighLevelEncoder {
                 charCounts[TEXT_ENCODATION] += 4.0f / 3.0f;
             }
 
-            // step O
+            //step O
             if (isNativeX12(c)) {
                 charCounts[X12_ENCODATION] += 2.0f / 3.0f;
             } else if (isExtendedASCII(c)) {
@@ -290,7 +288,7 @@ public final class HighLevelEncoder {
                 charCounts[X12_ENCODATION] += 10.0f / 3.0f;
             }
 
-            // step P
+            //step P
             if (isNativeEDIFACT(c)) {
                 charCounts[EDIFACT_ENCODATION] += 3.0f / 4.0f;
             } else if (isExtendedASCII(c)) {
@@ -301,12 +299,12 @@ public final class HighLevelEncoder {
 
             // step Q
             if (isSpecialB256(c)) {
-                charCounts[BASE256_ENCODATION] += 4;
+                charCounts[BASE256_ENCODATION] += 4.0f;
             } else {
                 charCounts[BASE256_ENCODATION]++;
             }
 
-            // step R
+            //step R
             if (charsProcessed >= 4) {
                 int[] intCharCounts = new int[6];
                 byte[] mins = new byte[6];
@@ -401,13 +399,13 @@ public final class HighLevelEncoder {
     }
 
     private static boolean isNativeX12(char ch) {
-        return isX12TermSep(ch) || (ch == ' ') || (ch >= '0' && ch <= '9')
-                || (ch >= 'A' && ch <= 'Z');
+        return isX12TermSep(ch) || (ch == ' ') || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z');
     }
 
     private static boolean isX12TermSep(char ch) {
-        return (ch == '\r') // CR
-                || (ch == '*') || (ch == '>');
+        return (ch == '\r') //CR
+                || (ch == '*')
+                || (ch == '>');
     }
 
     private static boolean isNativeEDIFACT(char ch) {
@@ -415,17 +413,14 @@ public final class HighLevelEncoder {
     }
 
     private static boolean isSpecialB256(char ch) {
-        return false; // TODO NOT IMPLEMENTED YET!!!
+        return false; //TODO NOT IMPLEMENTED YET!!!
     }
 
     /**
-     * Determines the number of consecutive characters that are encodable using
-     * numeric compaction.
+     * Determines the number of consecutive characters that are encodable using numeric compaction.
      *
-     * @param msg
-     *            the message
-     * @param startpos
-     *            the start position within the message
+     * @param msg      the message
+     * @param startpos the start position within the message
      * @return the requested character count
      */
     public static int determineConsecutiveDigitCount(CharSequence msg, int startpos) {

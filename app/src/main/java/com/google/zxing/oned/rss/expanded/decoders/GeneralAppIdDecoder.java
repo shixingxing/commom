@@ -32,8 +32,7 @@ import com.google.zxing.common.BitArray;
 
 /**
  * @author Pablo Orduña, University of Deusto (pablo.orduna@deusto.es)
- * @author Eduardo Castillejo, University of Deusto
- *         (eduardo.castillejo@deusto.es)
+ * @author Eduardo Castillejo, University of Deusto (eduardo.castillejo@deusto.es)
  */
 final class GeneralAppIdDecoder {
 
@@ -45,8 +44,7 @@ final class GeneralAppIdDecoder {
         this.information = information;
     }
 
-    String decodeAllCodes(StringBuilder buff, int initialPosition) throws NotFoundException,
-            FormatException {
+    String decodeAllCodes(StringBuilder buff, int initialPosition) throws NotFoundException, FormatException {
         int currentPosition = initialPosition;
         String remaining = null;
         do {
@@ -61,7 +59,7 @@ final class GeneralAppIdDecoder {
                 remaining = null;
             }
 
-            if (currentPosition == info.getNewPosition()) {// No step forward!
+            if (currentPosition == info.getNewPosition()) { // No step forward!
                 break;
             }
             currentPosition = info.getNewPosition();
@@ -90,8 +88,7 @@ final class GeneralAppIdDecoder {
         if (pos + 7 > this.information.getSize()) {
             int numeric = extractNumericValueFromBitArray(pos, 4);
             if (numeric == 0) {
-                return new DecodedNumeric(this.information.getSize(), DecodedNumeric.FNC1,
-                        DecodedNumeric.FNC1);
+                return new DecodedNumeric(this.information.getSize(), DecodedNumeric.FNC1, DecodedNumeric.FNC1);
             }
             return new DecodedNumeric(this.information.getSize(), numeric - 1, DecodedNumeric.FNC1);
         }
@@ -129,8 +126,7 @@ final class GeneralAppIdDecoder {
 
         DecodedInformation lastDecoded = parseBlocks();
         if (lastDecoded != null && lastDecoded.isRemaining()) {
-            return new DecodedInformation(this.current.getPosition(), this.buffer.toString(),
-                    lastDecoded.getRemainingValue());
+            return new DecodedInformation(this.current.getPosition(), this.buffer.toString(), lastDecoded.getRemainingValue());
         }
         return new DecodedInformation(this.current.getPosition(), this.buffer.toString());
     }
@@ -171,16 +167,14 @@ final class GeneralAppIdDecoder {
                 if (numeric.isSecondDigitFNC1()) {
                     information = new DecodedInformation(current.getPosition(), buffer.toString());
                 } else {
-                    information = new DecodedInformation(current.getPosition(), buffer.toString(),
-                            numeric.getSecondDigit());
+                    information = new DecodedInformation(current.getPosition(), buffer.toString(), numeric.getSecondDigit());
                 }
                 return new BlockParsedResult(information, true);
             }
             buffer.append(numeric.getFirstDigit());
 
             if (numeric.isSecondDigitFNC1()) {
-                DecodedInformation information = new DecodedInformation(current.getPosition(),
-                        buffer.toString());
+                DecodedInformation information = new DecodedInformation(current.getPosition(), buffer.toString());
                 return new BlockParsedResult(information, true);
             }
             buffer.append(numeric.getSecondDigit());
@@ -199,8 +193,7 @@ final class GeneralAppIdDecoder {
             current.setPosition(iso.getNewPosition());
 
             if (iso.isFNC1()) {
-                DecodedInformation information = new DecodedInformation(current.getPosition(),
-                        buffer.toString());
+                DecodedInformation information = new DecodedInformation(current.getPosition(), buffer.toString());
                 return new BlockParsedResult(information, true);
             }
             buffer.append(iso.getValue());
@@ -227,10 +220,8 @@ final class GeneralAppIdDecoder {
             current.setPosition(alpha.getNewPosition());
 
             if (alpha.isFNC1()) {
-                DecodedInformation information = new DecodedInformation(current.getPosition(),
-                        buffer.toString());
-                return new BlockParsedResult(information, true); // end of the
-                                                                 // char block
+                DecodedInformation information = new DecodedInformation(current.getPosition(), buffer.toString());
+                return new BlockParsedResult(information, true); //end of the char block
             }
 
             buffer.append(alpha.getValue());
@@ -302,71 +293,71 @@ final class GeneralAppIdDecoder {
         int eightBitValue = extractNumericValueFromBitArray(pos, 8);
         char c;
         switch (eightBitValue) {
-        case 232:
-            c = '!';
-            break;
-        case 233:
-            c = '"';
-            break;
-        case 234:
-            c = '%';
-            break;
-        case 235:
-            c = '&';
-            break;
-        case 236:
-            c = '\'';
-            break;
-        case 237:
-            c = '(';
-            break;
-        case 238:
-            c = ')';
-            break;
-        case 239:
-            c = '*';
-            break;
-        case 240:
-            c = '+';
-            break;
-        case 241:
-            c = ',';
-            break;
-        case 242:
-            c = '-';
-            break;
-        case 243:
-            c = '.';
-            break;
-        case 244:
-            c = '/';
-            break;
-        case 245:
-            c = ':';
-            break;
-        case 246:
-            c = ';';
-            break;
-        case 247:
-            c = '<';
-            break;
-        case 248:
-            c = '=';
-            break;
-        case 249:
-            c = '>';
-            break;
-        case 250:
-            c = '?';
-            break;
-        case 251:
-            c = '_';
-            break;
-        case 252:
-            c = ' ';
-            break;
-        default:
-            throw FormatException.getFormatInstance();
+            case 232:
+                c = '!';
+                break;
+            case 233:
+                c = '"';
+                break;
+            case 234:
+                c = '%';
+                break;
+            case 235:
+                c = '&';
+                break;
+            case 236:
+                c = '\'';
+                break;
+            case 237:
+                c = '(';
+                break;
+            case 238:
+                c = ')';
+                break;
+            case 239:
+                c = '*';
+                break;
+            case 240:
+                c = '+';
+                break;
+            case 241:
+                c = ',';
+                break;
+            case 242:
+                c = '-';
+                break;
+            case 243:
+                c = '.';
+                break;
+            case 244:
+                c = '/';
+                break;
+            case 245:
+                c = ':';
+                break;
+            case 246:
+                c = ';';
+                break;
+            case 247:
+                c = '<';
+                break;
+            case 248:
+                c = '=';
+                break;
+            case 249:
+                c = '>';
+                break;
+            case 250:
+                c = '?';
+                break;
+            case 251:
+                c = '_';
+                break;
+            case 252:
+                c = ' ';
+                break;
+            default:
+                throw FormatException.getFormatInstance();
         }
         return new DecodedChar(pos + 8, c);
     }
@@ -408,23 +399,23 @@ final class GeneralAppIdDecoder {
 
         char c;
         switch (sixBitValue) {
-        case 58:
-            c = '*';
-            break;
-        case 59:
-            c = ',';
-            break;
-        case 60:
-            c = '-';
-            break;
-        case 61:
-            c = '.';
-            break;
-        case 62:
-            c = '/';
-            break;
-        default:
-            throw new IllegalStateException("Decoding invalid alphanumeric value: " + sixBitValue);
+            case 58:
+                c = '*';
+                break;
+            case 59:
+                c = ',';
+                break;
+            case 60:
+                c = '-';
+                break;
+            case 61:
+                c = '.';
+                break;
+            case 62:
+                c = '/';
+                break;
+            default:
+                throw new IllegalStateException("Decoding invalid alphanumeric value: " + sixBitValue);
         }
         return new DecodedChar(pos + 6, c);
     }
@@ -462,8 +453,7 @@ final class GeneralAppIdDecoder {
     }
 
     private boolean isNumericToAlphaNumericLatch(int pos) {
-        // Next is alphanumeric if there are 4 positions and they are all zeros,
-        // or
+        // Next is alphanumeric if there are 4 positions and they are all zeros, or
         // if there is a subset of this just before the end of the symbol
         if (pos + 1 > this.information.getSize()) {
             return false;

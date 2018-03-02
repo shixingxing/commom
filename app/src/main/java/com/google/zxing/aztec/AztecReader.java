@@ -44,10 +44,8 @@ public final class AztecReader implements Reader {
      * Locates and decodes a Data Matrix code in an image.
      *
      * @return a String representing the content encoded by the Data Matrix code
-     * @throws NotFoundException
-     *             if a Data Matrix code cannot be found
-     * @throws FormatException
-     *             if a Data Matrix code cannot be decoded
+     * @throws NotFoundException if a Data Matrix code cannot be found
+     * @throws FormatException   if a Data Matrix code cannot be decoded
      */
     @Override
     public Result decode(BinaryBitmap image) throws NotFoundException, FormatException {
@@ -89,8 +87,7 @@ public final class AztecReader implements Reader {
         }
 
         if (hints != null) {
-            ResultPointCallback rpcb = (ResultPointCallback) hints
-                    .get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
+            ResultPointCallback rpcb = (ResultPointCallback) hints.get(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
             if (rpcb != null) {
                 for (ResultPoint point : points) {
                     rpcb.foundPossibleResultPoint(point);
@@ -98,8 +95,12 @@ public final class AztecReader implements Reader {
             }
         }
 
-        Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points,
-                BarcodeFormat.AZTEC);
+        Result result = new Result(decoderResult.getText(),
+                decoderResult.getRawBytes(),
+                decoderResult.getNumBits(),
+                points,
+                BarcodeFormat.AZTEC,
+                System.currentTimeMillis());
 
         List<byte[]> byteSegments = decoderResult.getByteSegments();
         if (byteSegments != null) {

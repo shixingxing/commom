@@ -27,31 +27,40 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
+ * <p>Abstract class representing the result of decoding a barcode, as more than
+ * a String -- as some type of structured data. This might be a subclass which represents
+ * a URL, or an e-mail address. {@link #parseResult(Result)} will turn a raw
+ * decoded string into the most appropriate type of structured representation.</p>
  * <p>
- * Abstract class representing the result of decoding a barcode, as more than a
- * String -- as some type of structured data. This might be a subclass which
- * represents a URL, or an e-mail address. {@link #parseResult(Result)} will
- * turn a raw decoded string into the most appropriate type of structured
- * representation.
- * </p>
- *
- * <p>
- * Thanks to Jeff Griffin for proposing rewrite of these classes that relies
- * less on exception-based mechanisms during parsing.
- * </p>
+ * <p>Thanks to Jeff Griffin for proposing rewrite of these classes that relies less
+ * on exception-based mechanisms during parsing.</p>
  *
  * @author Sean Owen
  */
 public abstract class ResultParser {
 
-    private static final ResultParser[] PARSERS = { new BookmarkDoCoMoResultParser(),
-            new AddressBookDoCoMoResultParser(), new EmailDoCoMoResultParser(),
-            new AddressBookAUResultParser(), new VCardResultParser(), new BizcardResultParser(),
-            new VEventResultParser(), new EmailAddressResultParser(), new SMTPResultParser(),
-            new TelResultParser(), new SMSMMSResultParser(), new SMSTOMMSTOResultParser(),
-            new GeoResultParser(), new WifiResultParser(), new URLTOResultParser(),
-            new URIResultParser(), new ISBNResultParser(), new ProductResultParser(),
-            new ExpandedProductResultParser(), new VINResultParser(), };
+    private static final ResultParser[] PARSERS = {
+            new BookmarkDoCoMoResultParser(),
+            new AddressBookDoCoMoResultParser(),
+            new EmailDoCoMoResultParser(),
+            new AddressBookAUResultParser(),
+            new VCardResultParser(),
+            new BizcardResultParser(),
+            new VEventResultParser(),
+            new EmailAddressResultParser(),
+            new SMTPResultParser(),
+            new TelResultParser(),
+            new SMSMMSResultParser(),
+            new SMSTOMMSTOResultParser(),
+            new GeoResultParser(),
+            new WifiResultParser(),
+            new URLTOResultParser(),
+            new URIResultParser(),
+            new ISBNResultParser(),
+            new ProductResultParser(),
+            new ExpandedProductResultParser(),
+            new VINResultParser(),
+    };
 
     private static final Pattern DIGITS = Pattern.compile("\\d+");
     private static final Pattern AMPERSAND = Pattern.compile("&");
@@ -60,11 +69,10 @@ public abstract class ResultParser {
 
     /**
      * Attempts to parse the raw {@link Result}'s contents as a particular type
-     * of information (email, URL, etc.) and return a {@link ParsedResult}
-     * encapsulating the result of parsing.
+     * of information (email, URL, etc.) and return a {@link ParsedResult} encapsulating
+     * the result of parsing.
      *
-     * @param theResult
-     *            the raw {@link Result} to parse
+     * @param theResult the raw {@link Result} to parse
      * @return {@link ParsedResult} encapsulating the parsing result
      */
     public abstract ParsedResult parse(Result theResult);
@@ -104,7 +112,7 @@ public abstract class ResultParser {
     }
 
     protected static String[] maybeWrap(String value) {
-        return value == null ? null : new String[] { value };
+        return value == null ? null : new String[]{value};
     }
 
     protected static String unescapeBackslash(String escaped) {
@@ -142,8 +150,7 @@ public abstract class ResultParser {
     }
 
     protected static boolean isStringOfDigits(CharSequence value, int length) {
-        return value != null && length > 0 && length == value.length()
-                && DIGITS.matcher(value).matches();
+        return value != null && length > 0 && length == value.length() && DIGITS.matcher(value).matches();
     }
 
     protected static boolean isSubstringOfDigits(CharSequence value, int offset, int length) {
@@ -203,13 +210,11 @@ public abstract class ResultParser {
             while (more) {
                 i = rawText.indexOf(endChar, i);
                 if (i < 0) {
-                    // No terminating end character? uh, done. Set i such that
-                    // loop terminates and break
+                    // No terminating end character? uh, done. Set i such that loop terminates and break
                     i = rawText.length();
                     more = false;
                 } else if (countPrecedingBackslashes(rawText, i) % 2 != 0) {
-                    // semicolon was escaped (odd count of preceding
-                    // backslashes) so continue
+                    // semicolon was escaped (odd count of preceding backslashes) so continue
                     i++;
                 } else {
                     // found a match

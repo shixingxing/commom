@@ -19,11 +19,8 @@ package com.google.zxing;
 import com.google.zxing.common.detector.MathUtils;
 
 /**
- * <p>
- * Encapsulates a point of interest in an image containing a barcode. Typically,
- * this would be the location of a finder pattern or the corner of the barcode,
- * for example.
- * </p>
+ * <p>Encapsulates a point of interest in an image containing a barcode. Typically, this
+ * would be the location of a finder pattern or the corner of the barcode, for example.</p>
  *
  * @author Sean Owen
  */
@@ -61,22 +58,14 @@ public class ResultPoint {
 
     @Override
     public final String toString() {
-        StringBuilder result = new StringBuilder(25);
-        result.append('(');
-        result.append(x);
-        result.append(',');
-        result.append(y);
-        result.append(')');
-        return result.toString();
+        return "(" + x + ',' + y + ')';
     }
 
     /**
-     * Orders an array of three ResultPoints in an order [A,B,C] such that AB is
-     * less than AC and BC is less than AC, and the angle between BC and BA is
-     * less than 180 degrees.
+     * Orders an array of three ResultPoints in an order [A,B,C] such that AB is less than AC
+     * and BC is less than AC, and the angle between BC and BA is less than 180 degrees.
      *
-     * @param patterns
-     *            array of three {@code ResultPoint} to order
+     * @param patterns array of three {@code ResultPoint} to order
      */
     public static void orderBestPatterns(ResultPoint[] patterns) {
 
@@ -88,8 +77,7 @@ public class ResultPoint {
         ResultPoint pointA;
         ResultPoint pointB;
         ResultPoint pointC;
-        // Assume one closest to other two is B; A and C will just be guesses at
-        // first
+        // Assume one closest to other two is B; A and C will just be guesses at first
         if (oneTwoDistance >= zeroOneDistance && oneTwoDistance >= zeroTwoDistance) {
             pointB = patterns[0];
             pointA = patterns[1];
@@ -104,12 +92,9 @@ public class ResultPoint {
             pointC = patterns[1];
         }
 
-        // Use cross product to figure out whether A and C are correct or
-        // flipped.
-        // This asks whether BC x BA has a positive z component, which is the
-        // arrangement
-        // we want for A, B, C. If it's negative, then we've got it flipped
-        // around and
+        // Use cross product to figure out whether A and C are correct or flipped.
+        // This asks whether BC x BA has a positive z component, which is the arrangement
+        // we want for A, B, C. If it's negative, then we've got it flipped around and
         // should swap A and C.
         if (crossProductZ(pointA, pointB, pointC) < 0.0f) {
             ResultPoint temp = pointA;
@@ -123,10 +108,8 @@ public class ResultPoint {
     }
 
     /**
-     * @param pattern1
-     *            first pattern
-     * @param pattern2
-     *            second pattern
+     * @param pattern1 first pattern
+     * @param pattern2 second pattern
      * @return distance between two points
      */
     public static float distance(ResultPoint pattern1, ResultPoint pattern2) {
@@ -136,7 +119,9 @@ public class ResultPoint {
     /**
      * Returns the z component of the cross product between vectors BC and BA.
      */
-    private static float crossProductZ(ResultPoint pointA, ResultPoint pointB, ResultPoint pointC) {
+    private static float crossProductZ(ResultPoint pointA,
+                                       ResultPoint pointB,
+                                       ResultPoint pointC) {
         float bX = pointB.x;
         float bY = pointB.y;
         return ((pointC.x - bX) * (pointA.y - bY)) - ((pointC.y - bY) * (pointA.x - bX));

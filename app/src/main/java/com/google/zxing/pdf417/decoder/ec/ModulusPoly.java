@@ -32,17 +32,19 @@ final class ModulusPoly {
         this.field = field;
         int coefficientsLength = coefficients.length;
         if (coefficientsLength > 1 && coefficients[0] == 0) {
-            // Leading term must be non-zero for anything except the constant
-            // polynomial "0"
+            // Leading term must be non-zero for anything except the constant polynomial "0"
             int firstNonZero = 1;
             while (firstNonZero < coefficientsLength && coefficients[firstNonZero] == 0) {
                 firstNonZero++;
             }
             if (firstNonZero == coefficientsLength) {
-                this.coefficients = new int[] { 0 };
+                this.coefficients = new int[]{0};
             } else {
                 this.coefficients = new int[coefficientsLength - firstNonZero];
-                System.arraycopy(coefficients, firstNonZero, this.coefficients, 0,
+                System.arraycopy(coefficients,
+                        firstNonZero,
+                        this.coefficients,
+                        0,
                         this.coefficients.length);
             }
         } else {
@@ -83,7 +85,6 @@ final class ModulusPoly {
             // Just return the x^0 coefficient
             return getCoefficient(0);
         }
-        int size = coefficients.length;
         if (a == 1) {
             // Just the sum of the coefficients
             int result = 0;
@@ -93,6 +94,7 @@ final class ModulusPoly {
             return result;
         }
         int result = coefficients[0];
+        int size = coefficients.length;
         for (int i = 1; i < size; i++) {
             result = field.add(field.multiply(a, result), coefficients[i]);
         }
@@ -119,8 +121,7 @@ final class ModulusPoly {
         }
         int[] sumDiff = new int[largerCoefficients.length];
         int lengthDiff = largerCoefficients.length - smallerCoefficients.length;
-        // Copy high-order terms only found in higher-degree polynomial's
-        // coefficients
+        // Copy high-order terms only found in higher-degree polynomial's coefficients
         System.arraycopy(largerCoefficients, 0, sumDiff, 0, lengthDiff);
 
         for (int i = lengthDiff; i < largerCoefficients.length; i++) {
@@ -155,8 +156,7 @@ final class ModulusPoly {
         for (int i = 0; i < aLength; i++) {
             int aCoeff = aCoefficients[i];
             for (int j = 0; j < bLength; j++) {
-                product[i + j] = field
-                        .add(product[i + j], field.multiply(aCoeff, bCoefficients[j]));
+                product[i + j] = field.add(product[i + j], field.multiply(aCoeff, bCoefficients[j]));
             }
         }
         return new ModulusPoly(field, product);
@@ -201,32 +201,33 @@ final class ModulusPoly {
         return new ModulusPoly(field, product);
     }
 
-    ModulusPoly[] divide(ModulusPoly other) {
-        if (!field.equals(other.field)) {
-            throw new IllegalArgumentException("ModulusPolys do not have same ModulusGF field");
-        }
-        if (other.isZero()) {
-            throw new IllegalArgumentException("Divide by 0");
-        }
-
-        ModulusPoly quotient = field.getZero();
-        ModulusPoly remainder = this;
-
-        int denominatorLeadingTerm = other.getCoefficient(other.getDegree());
-        int inverseDenominatorLeadingTerm = field.inverse(denominatorLeadingTerm);
-
-        while (remainder.getDegree() >= other.getDegree() && !remainder.isZero()) {
-            int degreeDifference = remainder.getDegree() - other.getDegree();
-            int scale = field.multiply(remainder.getCoefficient(remainder.getDegree()),
-                    inverseDenominatorLeadingTerm);
-            ModulusPoly term = other.multiplyByMonomial(degreeDifference, scale);
-            ModulusPoly iterationQuotient = field.buildMonomial(degreeDifference, scale);
-            quotient = quotient.add(iterationQuotient);
-            remainder = remainder.subtract(term);
-        }
-
-        return new ModulusPoly[] { quotient, remainder };
+  /*
+  ModulusPoly[] divide(ModulusPoly other) {
+    if (!field.equals(other.field)) {
+      throw new IllegalArgumentException("ModulusPolys do not have same ModulusGF field");
     }
+    if (other.isZero()) {
+      throw new IllegalArgumentException("Divide by 0");
+    }
+
+    ModulusPoly quotient = field.getZero();
+    ModulusPoly remainder = this;
+
+    int denominatorLeadingTerm = other.getCoefficient(other.getDegree());
+    int inverseDenominatorLeadingTerm = field.inverse(denominatorLeadingTerm);
+
+    while (remainder.getDegree() >= other.getDegree() && !remainder.isZero()) {
+      int degreeDifference = remainder.getDegree() - other.getDegree();
+      int scale = field.multiply(remainder.getCoefficient(remainder.getDegree()), inverseDenominatorLeadingTerm);
+      ModulusPoly term = other.multiplyByMonomial(degreeDifference, scale);
+      ModulusPoly iterationQuotient = field.buildMonomial(degreeDifference, scale);
+      quotient = quotient.add(iterationQuotient);
+      remainder = remainder.subtract(term);
+    }
+
+    return new ModulusPoly[] { quotient, remainder };
+  }
+   */
 
     @Override
     public String toString() {

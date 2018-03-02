@@ -17,10 +17,9 @@
 package com.google.zxing;
 
 /**
- * A wrapper implementation of {@link LuminanceSource} which inverts the
- * luminances it returns -- black becomes white and vice versa, and each value
- * becomes (255-value).
- * 
+ * A wrapper implementation of {@link LuminanceSource} which inverts the luminances it returns -- black becomes
+ * white and vice versa, and each value becomes (255-value).
+ *
  * @author Sean Owen
  */
 public final class InvertedLuminanceSource extends LuminanceSource {
@@ -69,8 +68,7 @@ public final class InvertedLuminanceSource extends LuminanceSource {
     }
 
     /**
-     * @return original delegate {@link LuminanceSource} since invert undoes
-     *         itself
+     * @return original delegate {@link LuminanceSource} since invert undoes itself
      */
     @Override
     public LuminanceSource invert() {

@@ -35,23 +35,29 @@ final class BoundingBox {
     private int minY;
     private int maxY;
 
-    BoundingBox(BitMatrix image, ResultPoint topLeft, ResultPoint bottomLeft, ResultPoint topRight,
-            ResultPoint bottomRight) throws NotFoundException {
-        if ((topLeft == null && topRight == null) || (bottomLeft == null && bottomRight == null)
-                || (topLeft != null && bottomLeft == null)
-                || (topRight != null && bottomRight == null)) {
+    BoundingBox(BitMatrix image,
+                ResultPoint topLeft,
+                ResultPoint bottomLeft,
+                ResultPoint topRight,
+                ResultPoint bottomRight) throws NotFoundException {
+        if ((topLeft == null && topRight == null) ||
+                (bottomLeft == null && bottomRight == null) ||
+                (topLeft != null && bottomLeft == null) ||
+                (topRight != null && bottomRight == null)) {
             throw NotFoundException.getNotFoundInstance();
         }
         init(image, topLeft, bottomLeft, topRight, bottomRight);
     }
 
     BoundingBox(BoundingBox boundingBox) {
-        init(boundingBox.image, boundingBox.topLeft, boundingBox.bottomLeft, boundingBox.topRight,
-                boundingBox.bottomRight);
+        init(boundingBox.image, boundingBox.topLeft, boundingBox.bottomLeft, boundingBox.topRight, boundingBox.bottomRight);
     }
 
-    private void init(BitMatrix image, ResultPoint topLeft, ResultPoint bottomLeft,
-            ResultPoint topRight, ResultPoint bottomRight) {
+    private void init(BitMatrix image,
+                      ResultPoint topLeft,
+                      ResultPoint bottomLeft,
+                      ResultPoint topRight,
+                      ResultPoint bottomRight) {
         this.image = image;
         this.topLeft = topLeft;
         this.bottomLeft = bottomLeft;
@@ -67,12 +73,10 @@ final class BoundingBox {
         if (rightBox == null) {
             return leftBox;
         }
-        return new BoundingBox(leftBox.image, leftBox.topLeft, leftBox.bottomLeft,
-                rightBox.topRight, rightBox.bottomRight);
+        return new BoundingBox(leftBox.image, leftBox.topLeft, leftBox.bottomLeft, rightBox.topRight, rightBox.bottomRight);
     }
 
-    BoundingBox addMissingRows(int missingStartRows, int missingEndRows, boolean isLeft)
-            throws NotFoundException {
+    BoundingBox addMissingRows(int missingStartRows, int missingEndRows, boolean isLeft) throws NotFoundException {
         ResultPoint newTopLeft = topLeft;
         ResultPoint newBottomLeft = bottomLeft;
         ResultPoint newTopRight = topRight;
@@ -84,8 +88,6 @@ final class BoundingBox {
             if (newMinY < 0) {
                 newMinY = 0;
             }
-            // TODO use existing points to better interpolate the new x
-            // positions
             ResultPoint newTop = new ResultPoint(top.getX(), newMinY);
             if (isLeft) {
                 newTopLeft = newTop;
@@ -100,8 +102,6 @@ final class BoundingBox {
             if (newMaxY >= image.getHeight()) {
                 newMaxY = image.getHeight() - 1;
             }
-            // TODO use existing points to better interpolate the new x
-            // positions
             ResultPoint newBottom = new ResultPoint(bottom.getX(), newMaxY);
             if (isLeft) {
                 newBottomLeft = newBottom;
@@ -129,13 +129,17 @@ final class BoundingBox {
         maxY = (int) Math.max(bottomLeft.getY(), bottomRight.getY());
     }
 
-    /*
-     * void setTopRight(ResultPoint topRight) { this.topRight = topRight;
-     * calculateMinMaxValues(); }
-     * 
-     * void setBottomRight(ResultPoint bottomRight) { this.bottomRight =
-     * bottomRight; calculateMinMaxValues(); }
-     */
+  /*
+  void setTopRight(ResultPoint topRight) {
+    this.topRight = topRight;
+    calculateMinMaxValues();
+  }
+
+  void setBottomRight(ResultPoint bottomRight) {
+    this.bottomRight = bottomRight;
+    calculateMinMaxValues();
+  }
+   */
 
     int getMinX() {
         return minX;

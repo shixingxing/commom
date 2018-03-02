@@ -35,7 +35,9 @@ final class CurrentParsingState {
     private State encoding;
 
     private enum State {
-        NUMERIC, ALPHA, ISO_IEC_646
+        NUMERIC,
+        ALPHA,
+        ISO_IEC_646
     }
 
     CurrentParsingState() {

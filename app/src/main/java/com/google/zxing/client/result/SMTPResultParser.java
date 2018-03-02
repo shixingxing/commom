@@ -19,10 +19,8 @@ package com.google.zxing.client.result;
 import com.google.zxing.Result;
 
 /**
- * <p>
- * Parses an "smtp:" URI result, whose format is not standardized but appears to
- * be like: {@code smtp[:subject[:body]]}.
- * </p>
+ * <p>Parses an "smtp:" URI result, whose format is not standardized but appears to be like:
+ * {@code smtp[:subject[:body]]}.</p>
  *
  * @author Sean Owen
  */
@@ -47,7 +45,10 @@ public final class SMTPResultParser extends ResultParser {
                 subject = subject.substring(0, colon);
             }
         }
-        return new EmailAddressParsedResult(new String[] { emailAddress }, null, null, subject,
+        return new EmailAddressParsedResult(new String[]{emailAddress},
+                null,
+                null,
+                subject,
                 body);
     }
 }

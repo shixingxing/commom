@@ -21,13 +21,12 @@ import com.google.zxing.LuminanceSource;
 import com.google.zxing.NotFoundException;
 
 /**
- * This Binarizer implementation uses the old ZXing global histogram approach.
- * It is suitable for low-end mobile devices which don't have enough CPU or
- * memory to use a local thresholding algorithm. However, because it picks a
- * global black point, it cannot handle difficult shadows and gradients.
- *
- * Faster mobile devices and all desktop applications should probably use
- * HybridBinarizer instead.
+ * This Binarizer implementation uses the old ZXing global histogram approach. It is suitable
+ * for low-end mobile devices which don't have enough CPU or memory to use a local thresholding
+ * algorithm. However, because it picks a global black point, it cannot handle difficult shadows
+ * and gradients.
+ * <p>
+ * Faster mobile devices and all desktop applications should probably use HybridBinarizer instead.
  *
  * @author dswitkin@google.com (Daniel Switkin)
  * @author Sean Owen
@@ -48,8 +47,7 @@ public class GlobalHistogramBinarizer extends Binarizer {
         buckets = new int[LUMINANCE_BUCKETS];
     }
 
-    // Applies simple sharpening to the row data to improve performance of the
-    // 1D Readers.
+    // Applies simple sharpening to the row data to improve performance of the 1D Readers.
     @Override
     public BitArray getBlackRow(int y, BitArray row) throws NotFoundException {
         LuminanceSource source = getLuminanceSource();
@@ -64,28 +62,34 @@ public class GlobalHistogramBinarizer extends Binarizer {
         byte[] localLuminances = source.getRow(y, luminances);
         int[] localBuckets = buckets;
         for (int x = 0; x < width; x++) {
-            int pixel = localLuminances[x] & 0xff;
-            localBuckets[pixel >> LUMINANCE_SHIFT]++;
+            localBuckets[(localLuminances[x] & 0xff) >> LUMINANCE_SHIFT]++;
         }
         int blackPoint = estimateBlackPoint(localBuckets);
 
-        int left = localLuminances[0] & 0xff;
-        int center = localLuminances[1] & 0xff;
-        for (int x = 1; x < width - 1; x++) {
-            int right = localLuminances[x + 1] & 0xff;
-            // A simple -1 4 -1 box filter with a weight of 2.
-            int luminance = ((center * 4) - left - right) / 2;
-            if (luminance < blackPoint) {
-                row.set(x);
+        if (width < 3) {
+            // Special case for very small images
+            for (int x = 0; x < width; x++) {
+                if ((localLuminances[x] & 0xff) < blackPoint) {
+                    row.set(x);
+                }
             }
-            left = center;
-            center = right;
+        } else {
+            int left = localLuminances[0] & 0xff;
+            int center = localLuminances[1] & 0xff;
+            for (int x = 1; x < width - 1; x++) {
+                int right = localLuminances[x + 1] & 0xff;
+                // A simple -1 4 -1 box filter with a weight of 2.
+                if (((center * 4) - left - right) / 2 < blackPoint) {
+                    row.set(x);
+                }
+                left = center;
+                center = right;
+            }
         }
         return row;
     }
 
-    // Does not sharpen the data, as this call is intended to only be used by 2D
-    // Readers.
+    // Does not sharpen the data, as this call is intended to only be used by 2D Readers.
     @Override
     public BitMatrix getBlackMatrix() throws NotFoundException {
         LuminanceSource source = getLuminanceSource();
@@ -93,10 +97,8 @@ public class GlobalHistogramBinarizer extends Binarizer {
         int height = source.getHeight();
         BitMatrix matrix = new BitMatrix(width, height);
 
-        // Quickly calculates the histogram by sampling four rows from the
-        // image. This proved to be
-        // more robust on the blackbox tests than sampling a diagonal as we used
-        // to do.
+        // Quickly calculates the histogram by sampling four rows from the image. This proved to be
+        // more robust on the blackbox tests than sampling a diagonal as we used to do.
         initArrays(width);
         int[] localBuckets = buckets;
         for (int y = 1; y < 5; y++) {
@@ -110,10 +112,8 @@ public class GlobalHistogramBinarizer extends Binarizer {
         }
         int blackPoint = estimateBlackPoint(localBuckets);
 
-        // We delay reading the entire image luminance until the black point
-        // estimation succeeds.
-        // Although we end up reading four rows twice, it is consistent with our
-        // motto of
+        // We delay reading the entire image luminance until the black point estimation succeeds.
+        // Although we end up reading four rows twice, it is consistent with our motto of
         // "fail quickly" which is necessary for continuous scanning.
         byte[] localLuminances = source.getMatrix();
         for (int y = 0; y < height; y++) {
@@ -159,14 +159,12 @@ public class GlobalHistogramBinarizer extends Binarizer {
             }
         }
 
-        // Find the second-tallest peak which is somewhat far from the tallest
-        // peak.
+        // Find the second-tallest peak which is somewhat far from the tallest peak.
         int secondPeak = 0;
         int secondPeakScore = 0;
         for (int x = 0; x < numBuckets; x++) {
             int distanceToBiggest = x - firstPeak;
-            // Encourage more distant second peaks by multiplying by square of
-            // distance.
+            // Encourage more distant second peaks by multiplying by square of distance.
             int score = buckets[x] * distanceToBiggest * distanceToBiggest;
             if (score > secondPeakScore) {
                 secondPeak = x;
@@ -181,8 +179,7 @@ public class GlobalHistogramBinarizer extends Binarizer {
             secondPeak = temp;
         }
 
-        // If there is too little contrast in the image to pick a meaningful
-        // black point, throw rather
+        // If there is too little contrast in the image to pick a meaningful black point, throw rather
         // than waste time trying to decode the image, and risk false positives.
         if (secondPeak - firstPeak <= numBuckets / 16) {
             throw NotFoundException.getNotFoundInstance();

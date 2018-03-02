@@ -56,7 +56,7 @@ public final class CameraConfigurationUtils {
     }
 
     public static void setFocus(Camera.Parameters parameters, boolean autoFocus,
-            boolean disableContinuous, boolean safeMode) {
+                                boolean disableContinuous, boolean safeMode) {
         List<String> supportedFocusModes = parameters.getSupportedFocusModes();
         String focusMode = null;
         if (autoFocus) {
@@ -267,7 +267,7 @@ public final class CameraConfigurationUtils {
     }
 
     public static Point findBestPreviewSizeValue(Camera.Parameters parameters,
-            Point screenResolution) {
+                                                 Point screenResolution) {
 
         List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
         if (rawSupportedSizes == null) {
@@ -358,7 +358,7 @@ public final class CameraConfigurationUtils {
     }
 
     private static String findSettableValue(String name, Collection<String> supportedValues,
-            String... desiredValues) {
+                                            String... desiredValues) {
         Log.i(TAG, "Requesting " + name + " value from among: " + Arrays.toString(desiredValues));
         Log.i(TAG, "Supported " + name + " values: " + supportedValues);
         if (supportedValues != null) {

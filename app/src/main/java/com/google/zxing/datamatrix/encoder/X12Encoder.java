@@ -25,7 +25,7 @@ final class X12Encoder extends C40Encoder {
 
     @Override
     public void encode(EncoderContext context) {
-        // step C
+        //step C
         StringBuilder buffer = new StringBuilder();
         while (context.hasMoreCharacters()) {
             char c = context.getCurrentChar();
@@ -37,10 +37,10 @@ final class X12Encoder extends C40Encoder {
             if ((count % 3) == 0) {
                 writeNextTriplet(context, buffer);
 
-                int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos,
-                        getEncodingMode());
+                int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos, getEncodingMode());
                 if (newMode != getEncodingMode()) {
-                    context.signalEncoderChange(newMode);
+                    // Return to ASCII encodation, which will actually handle latch to new mode
+                    context.signalEncoderChange(HighLevelEncoder.ASCII_ENCODATION);
                     break;
                 }
             }
@@ -50,20 +50,28 @@ final class X12Encoder extends C40Encoder {
 
     @Override
     int encodeChar(char c, StringBuilder sb) {
-        if (c == '\r') {
-            sb.append('\0');
-        } else if (c == '*') {
-            sb.append('\1');
-        } else if (c == '>') {
-            sb.append('\2');
-        } else if (c == ' ') {
-            sb.append('\3');
-        } else if (c >= '0' && c <= '9') {
-            sb.append((char) (c - 48 + 4));
-        } else if (c >= 'A' && c <= 'Z') {
-            sb.append((char) (c - 65 + 14));
-        } else {
-            HighLevelEncoder.illegalCharacter(c);
+        switch (c) {
+            case '\r':
+                sb.append('\0');
+                break;
+            case '*':
+                sb.append('\1');
+                break;
+            case '>':
+                sb.append('\2');
+                break;
+            case ' ':
+                sb.append('\3');
+                break;
+            default:
+                if (c >= '0' && c <= '9') {
+                    sb.append((char) (c - 48 + 4));
+                } else if (c >= 'A' && c <= 'Z') {
+                    sb.append((char) (c - 65 + 14));
+                } else {
+                    HighLevelEncoder.illegalCharacter(c);
+                }
+                break;
         }
         return 1;
     }
@@ -73,16 +81,12 @@ final class X12Encoder extends C40Encoder {
         context.updateSymbolInfo();
         int available = context.getSymbolInfo().getDataCapacity() - context.getCodewordCount();
         int count = buffer.length();
-        if (count == 2) {
+        context.pos -= count;
+        if (context.getRemainingCharacters() > 1 || available > 1 ||
+                context.getRemainingCharacters() != available) {
             context.writeCodeword(HighLevelEncoder.X12_UNLATCH);
-            context.pos -= 2;
-            context.signalEncoderChange(HighLevelEncoder.ASCII_ENCODATION);
-        } else if (count == 1) {
-            context.pos--;
-            if (available > 1) {
-                context.writeCodeword(HighLevelEncoder.X12_UNLATCH);
-            }
-            // NOP - No unlatch necessary
+        }
+        if (context.getNewEncoding() < 0) {
             context.signalEncoderChange(HighLevelEncoder.ASCII_ENCODATION);
         }
     }

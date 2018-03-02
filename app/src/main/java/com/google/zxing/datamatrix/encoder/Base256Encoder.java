@@ -26,17 +26,17 @@ final class Base256Encoder implements Encoder {
     @Override
     public void encode(EncoderContext context) {
         StringBuilder buffer = new StringBuilder();
-        buffer.append('\0'); // Initialize length field
+        buffer.append('\0'); //Initialize length field
         while (context.hasMoreCharacters()) {
             char c = context.getCurrentChar();
             buffer.append(c);
 
             context.pos++;
 
-            int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos,
-                    getEncodingMode());
+            int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos, getEncodingMode());
             if (newMode != getEncodingMode()) {
-                context.signalEncoderChange(newMode);
+                // Return to ASCII encodation, which will actually handle latch to new mode
+                context.signalEncoderChange(HighLevelEncoder.ASCII_ENCODATION);
                 break;
             }
         }
@@ -48,16 +48,17 @@ final class Base256Encoder implements Encoder {
         if (context.hasMoreCharacters() || mustPad) {
             if (dataCount <= 249) {
                 buffer.setCharAt(0, (char) dataCount);
-            } else if (dataCount > 249 && dataCount <= 1555) {
+            } else if (dataCount <= 1555) {
                 buffer.setCharAt(0, (char) ((dataCount / 250) + 249));
                 buffer.insert(1, (char) (dataCount % 250));
             } else {
-                throw new IllegalStateException("Message length not in valid ranges: " + dataCount);
+                throw new IllegalStateException(
+                        "Message length not in valid ranges: " + dataCount);
             }
         }
         for (int i = 0, c = buffer.length(); i < c; i++) {
-            context.writeCodeword(randomize255State(buffer.charAt(i),
-                    context.getCodewordCount() + 1));
+            context.writeCodeword(randomize255State(
+                    buffer.charAt(i), context.getCodewordCount() + 1));
         }
     }
 

@@ -52,15 +52,15 @@ final class AI01393xDecoder extends AI01decoder {
 
         encodeCompressedGtin(buf, HEADER_SIZE);
 
-        int lastAIdigit = this.getGeneralDecoder().extractNumericValueFromBitArray(
-                HEADER_SIZE + GTIN_SIZE, LAST_DIGIT_SIZE);
+        int lastAIdigit =
+                this.getGeneralDecoder().extractNumericValueFromBitArray(HEADER_SIZE + GTIN_SIZE, LAST_DIGIT_SIZE);
 
         buf.append("(393");
         buf.append(lastAIdigit);
         buf.append(')');
 
-        int firstThreeDigits = this.getGeneralDecoder().extractNumericValueFromBitArray(
-                HEADER_SIZE + GTIN_SIZE + LAST_DIGIT_SIZE, FIRST_THREE_DIGITS_SIZE);
+        int firstThreeDigits =
+                this.getGeneralDecoder().extractNumericValueFromBitArray(HEADER_SIZE + GTIN_SIZE + LAST_DIGIT_SIZE, FIRST_THREE_DIGITS_SIZE);
         if (firstThreeDigits / 100 == 0) {
             buf.append('0');
         }
@@ -69,8 +69,8 @@ final class AI01393xDecoder extends AI01decoder {
         }
         buf.append(firstThreeDigits);
 
-        DecodedInformation generalInformation = this.getGeneralDecoder().decodeGeneralPurposeField(
-                HEADER_SIZE + GTIN_SIZE + LAST_DIGIT_SIZE + FIRST_THREE_DIGITS_SIZE, null);
+        DecodedInformation generalInformation =
+                this.getGeneralDecoder().decodeGeneralPurposeField(HEADER_SIZE + GTIN_SIZE + LAST_DIGIT_SIZE + FIRST_THREE_DIGITS_SIZE, null);
         buf.append(generalInformation.getNewString());
 
         return buf.toString();

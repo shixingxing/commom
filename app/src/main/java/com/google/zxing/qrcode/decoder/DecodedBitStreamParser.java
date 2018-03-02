@@ -30,14 +30,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * <p>QR Codes can encode text as bits in one of several modes, and can use multiple modes
+ * in one QR Code. This class decodes the bits back into text.</p>
  * <p>
- * QR Codes can encode text as bits in one of several modes, and can use
- * multiple modes in one QR Code. This class decodes the bits back into text.
- * </p>
- *
- * <p>
- * See ISO 18004:2006, 6.4.3 - 6.4.7
- * </p>
+ * <p>See ISO 18004:2006, 6.4.3 - 6.4.7</p>
  *
  * @author Sean Owen
  */
@@ -46,17 +42,17 @@ final class DecodedBitStreamParser {
     /**
      * See ISO 18004:2006, 6.4.4 Table 5
      */
-    private static final char[] ALPHANUMERIC_CHARS = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
-            '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-            'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '$', '%', '*', '+', '-', '.',
-            '/', ':' };
+    private static final char[] ALPHANUMERIC_CHARS =
+            "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:".toCharArray();
     private static final int GB2312_SUBSET = 1;
 
     private DecodedBitStreamParser() {
     }
 
-    static DecoderResult decode(byte[] bytes, Version version, ErrorCorrectionLevel ecLevel,
-            Map<DecodeHintType, ?> hints) throws FormatException {
+    static DecoderResult decode(byte[] bytes,
+                                Version version,
+                                ErrorCorrectionLevel ecLevel,
+                                Map<DecodeHintType, ?> hints) throws FormatException {
         BitSource bits = new BitSource(bytes);
         StringBuilder result = new StringBuilder(50);
         List<byte[]> byteSegments = new ArrayList<>(1);
@@ -70,65 +66,66 @@ final class DecodedBitStreamParser {
             do {
                 // While still another segment to read...
                 if (bits.available() < 4) {
-                    // OK, assume we're done. Really, a TERMINATOR mode should
-                    // have been recorded here
+                    // OK, assume we're done. Really, a TERMINATOR mode should have been recorded here
                     mode = Mode.TERMINATOR;
                 } else {
-                    mode = Mode.forBits(bits.readBits(4)); // mode is encoded by
-                                                           // 4 bits
+                    mode = Mode.forBits(bits.readBits(4)); // mode is encoded by 4 bits
                 }
-                if (mode != Mode.TERMINATOR) {
-                    if (mode == Mode.FNC1_FIRST_POSITION || mode == Mode.FNC1_SECOND_POSITION) {
-                        // We do little with FNC1 except alter the parsed result
-                        // a bit according to the spec
+                switch (mode) {
+                    case TERMINATOR:
+                        break;
+                    case FNC1_FIRST_POSITION:
+                    case FNC1_SECOND_POSITION:
+                        // We do little with FNC1 except alter the parsed result a bit according to the spec
                         fc1InEffect = true;
-                    } else if (mode == Mode.STRUCTURED_APPEND) {
+                        break;
+                    case STRUCTURED_APPEND:
                         if (bits.available() < 16) {
                             throw FormatException.getFormatInstance();
                         }
-                        // sequence number and parity is added later to the
-                        // result metadata
-                        // Read next 8 bits (symbol sequence #) and 8 bits
-                        // (parity data), then continue
+                        // sequence number and parity is added later to the result metadata
+                        // Read next 8 bits (symbol sequence #) and 8 bits (parity data), then continue
                         symbolSequence = bits.readBits(8);
                         parityData = bits.readBits(8);
-                    } else if (mode == Mode.ECI) {
+                        break;
+                    case ECI:
                         // Count doesn't apply to ECI
                         int value = parseECIValue(bits);
                         currentCharacterSetECI = CharacterSetECI.getCharacterSetECIByValue(value);
                         if (currentCharacterSetECI == null) {
                             throw FormatException.getFormatInstance();
                         }
-                    } else {
-                        // First handle Hanzi mode which does not start with
-                        // character count
-                        if (mode == Mode.HANZI) {
-                            // chinese mode contains a sub set indicator right
-                            // after mode indicator
-                            int subset = bits.readBits(4);
-                            int countHanzi = bits.readBits(mode.getCharacterCountBits(version));
-                            if (subset == GB2312_SUBSET) {
-                                decodeHanziSegment(bits, result, countHanzi);
-                            }
-                        } else {
-                            // "Normal" QR code modes:
-                            // How many characters will follow, encoded in this
-                            // mode?
-                            int count = bits.readBits(mode.getCharacterCountBits(version));
-                            if (mode == Mode.NUMERIC) {
-                                decodeNumericSegment(bits, result, count);
-                            } else if (mode == Mode.ALPHANUMERIC) {
-                                decodeAlphanumericSegment(bits, result, count, fc1InEffect);
-                            } else if (mode == Mode.BYTE) {
-                                decodeByteSegment(bits, result, count, currentCharacterSetECI,
-                                        byteSegments, hints);
-                            } else if (mode == Mode.KANJI) {
-                                decodeKanjiSegment(bits, result, count);
-                            } else {
-                                throw FormatException.getFormatInstance();
-                            }
+                        break;
+                    case HANZI:
+                        // First handle Hanzi mode which does not start with character count
+                        // Chinese mode contains a sub set indicator right after mode indicator
+                        int subset = bits.readBits(4);
+                        int countHanzi = bits.readBits(mode.getCharacterCountBits(version));
+                        if (subset == GB2312_SUBSET) {
+                            decodeHanziSegment(bits, result, countHanzi);
                         }
-                    }
+                        break;
+                    default:
+                        // "Normal" QR code modes:
+                        // How many characters will follow, encoded in this mode?
+                        int count = bits.readBits(mode.getCharacterCountBits(version));
+                        switch (mode) {
+                            case NUMERIC:
+                                decodeNumericSegment(bits, result, count);
+                                break;
+                            case ALPHANUMERIC:
+                                decodeAlphanumericSegment(bits, result, count, fc1InEffect);
+                                break;
+                            case BYTE:
+                                decodeByteSegment(bits, result, count, currentCharacterSetECI, byteSegments, hints);
+                                break;
+                            case KANJI:
+                                decodeKanjiSegment(bits, result, count);
+                                break;
+                            default:
+                                throw FormatException.getFormatInstance();
+                        }
+                        break;
                 }
             } while (mode != Mode.TERMINATOR);
         } catch (IllegalArgumentException iae) {
@@ -136,23 +133,26 @@ final class DecodedBitStreamParser {
             throw FormatException.getFormatInstance();
         }
 
-        return new DecoderResult(bytes, result.toString(), byteSegments.isEmpty() ? null
-                : byteSegments, ecLevel == null ? null : ecLevel.toString(), symbolSequence,
+        return new DecoderResult(bytes,
+                result.toString(),
+                byteSegments.isEmpty() ? null : byteSegments,
+                ecLevel == null ? null : ecLevel.toString(),
+                symbolSequence,
                 parityData);
     }
 
     /**
      * See specification GBT 18284-2000
      */
-    private static void decodeHanziSegment(BitSource bits, StringBuilder result, int count)
-            throws FormatException {
+    private static void decodeHanziSegment(BitSource bits,
+                                           StringBuilder result,
+                                           int count) throws FormatException {
         // Don't crash trying to read more bits than we have available.
         if (count * 13 > bits.available()) {
             throw FormatException.getFormatInstance();
         }
 
-        // Each character will require 2 bytes. Read the characters as 2-byte
-        // pairs
+        // Each character will require 2 bytes. Read the characters as 2-byte pairs
         // and decode as GB2312 afterwards
         byte[] buffer = new byte[2 * count];
         int offset = 0;
@@ -180,15 +180,15 @@ final class DecodedBitStreamParser {
         }
     }
 
-    private static void decodeKanjiSegment(BitSource bits, StringBuilder result, int count)
-            throws FormatException {
+    private static void decodeKanjiSegment(BitSource bits,
+                                           StringBuilder result,
+                                           int count) throws FormatException {
         // Don't crash trying to read more bits than we have available.
         if (count * 13 > bits.available()) {
             throw FormatException.getFormatInstance();
         }
 
-        // Each character will require 2 bytes. Read the characters as 2-byte
-        // pairs
+        // Each character will require 2 bytes. Read the characters as 2-byte pairs
         // and decode as Shift_JIS afterwards
         byte[] buffer = new byte[2 * count];
         int offset = 0;
@@ -216,9 +216,12 @@ final class DecodedBitStreamParser {
         }
     }
 
-    private static void decodeByteSegment(BitSource bits, StringBuilder result, int count,
-            CharacterSetECI currentCharacterSetECI, Collection<byte[]> byteSegments,
-            Map<DecodeHintType, ?> hints) throws FormatException {
+    private static void decodeByteSegment(BitSource bits,
+                                          StringBuilder result,
+                                          int count,
+                                          CharacterSetECI currentCharacterSetECI,
+                                          Collection<byte[]> byteSegments,
+                                          Map<DecodeHintType, ?> hints) throws FormatException {
         // Don't crash trying to read more bits than we have available.
         if (8 * count > bits.available()) {
             throw FormatException.getFormatInstance();
@@ -254,8 +257,10 @@ final class DecodedBitStreamParser {
         return ALPHANUMERIC_CHARS[value];
     }
 
-    private static void decodeAlphanumericSegment(BitSource bits, StringBuilder result, int count,
-            boolean fc1InEffect) throws FormatException {
+    private static void decodeAlphanumericSegment(BitSource bits,
+                                                  StringBuilder result,
+                                                  int count,
+                                                  boolean fc1InEffect) throws FormatException {
         // Read two characters at a time
         int start = result.length();
         while (count > 1) {
@@ -283,8 +288,7 @@ final class DecodedBitStreamParser {
                         // %% is rendered as %
                         result.deleteCharAt(i + 1);
                     } else {
-                        // In alpha mode, % should be converted to FNC1
-                        // separator 0x1D
+                        // In alpha mode, % should be converted to FNC1 separator 0x1D
                         result.setCharAt(i, (char) 0x1D);
                     }
                 }
@@ -292,8 +296,9 @@ final class DecodedBitStreamParser {
         }
     }
 
-    private static void decodeNumericSegment(BitSource bits, StringBuilder result, int count)
-            throws FormatException {
+    private static void decodeNumericSegment(BitSource bits,
+                                             StringBuilder result,
+                                             int count) throws FormatException {
         // Read three digits at a time
         while (count >= 3) {
             // Each 10 bits encodes three digits

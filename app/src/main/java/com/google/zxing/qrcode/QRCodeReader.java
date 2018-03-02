@@ -55,16 +55,12 @@ public class QRCodeReader implements Reader {
      * Locates and decodes a QR code in an image.
      *
      * @return a String representing the content encoded by the QR code
-     * @throws NotFoundException
-     *             if a QR code cannot be found
-     * @throws FormatException
-     *             if a QR code cannot be decoded
-     * @throws ChecksumException
-     *             if error correction fails
+     * @throws NotFoundException if a QR code cannot be found
+     * @throws FormatException   if a QR code cannot be decoded
+     * @throws ChecksumException if error correction fails
      */
     @Override
-    public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException,
-            FormatException {
+    public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
         return decode(image, null);
     }
 
@@ -83,14 +79,12 @@ public class QRCodeReader implements Reader {
             points = detectorResult.getPoints();
         }
 
-        // If the code was mirrored: swap the bottom-left and the top-right
-        // points.
+        // If the code was mirrored: swap the bottom-left and the top-right points.
         if (decoderResult.getOther() instanceof QRCodeDecoderMetaData) {
             ((QRCodeDecoderMetaData) decoderResult.getOther()).applyMirroredCorrection(points);
         }
 
-        Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points,
-                BarcodeFormat.QR_CODE);
+        Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points, BarcodeFormat.QR_CODE);
         List<byte[]> byteSegments = decoderResult.getByteSegments();
         if (byteSegments != null) {
             result.putMetadata(ResultMetadataType.BYTE_SEGMENTS, byteSegments);
@@ -114,10 +108,10 @@ public class QRCodeReader implements Reader {
     }
 
     /**
-     * This method detects a code in a "pure" image -- that is, pure monochrome
-     * image which contains only an unrotated, unskewed, image of a code, with
-     * some white border around it. This is a specialized method that works
-     * exceptionally fast in this special case.
+     * This method detects a code in a "pure" image -- that is, pure monochrome image
+     * which contains only an unrotated, unskewed, image of a code, with some white border
+     * around it. This is a specialized method that works exceptionally fast in this special
+     * case.
      *
      * @see com.google.zxing.datamatrix.DataMatrixReader#extractPureBits(BitMatrix)
      */
@@ -142,10 +136,13 @@ public class QRCodeReader implements Reader {
         }
 
         if (bottom - top != right - left) {
-            // Special case, where bottom-right module wasn't black so we found
-            // something else in the last row
+            // Special case, where bottom-right module wasn't black so we found something else in the last row
             // Assume it's a square, so use height as the width
             right = left + (bottom - top);
+            if (right >= image.getWidth()) {
+                // Abort if that would not make sense -- off image
+                throw NotFoundException.getNotFoundInstance();
+            }
         }
 
         int matrixWidth = Math.round((right - left + 1) / moduleSize);
@@ -166,10 +163,8 @@ public class QRCodeReader implements Reader {
         left += nudge;
 
         // But careful that this does not sample off the edge
-        // "right" is the farthest-right valid pixel location -- right+1 is not
-        // necessarily
-        // This is positive by how much the inner x loop below would be too
-        // large
+        // "right" is the farthest-right valid pixel location -- right+1 is not necessarily
+        // This is positive by how much the inner x loop below would be too large
         int nudgedTooFarRight = left + (int) ((matrixWidth - 1) * moduleSize) - right;
         if (nudgedTooFarRight > 0) {
             if (nudgedTooFarRight > nudge) {

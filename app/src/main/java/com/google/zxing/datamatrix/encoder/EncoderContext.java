@@ -18,7 +18,7 @@ package com.google.zxing.datamatrix.encoder;
 
 import com.google.zxing.Dimension;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 final class EncoderContext {
 
@@ -33,18 +33,17 @@ final class EncoderContext {
     private int skipAtEnd;
 
     EncoderContext(String msg) {
-        // From this point on Strings are not Unicode anymore!
-        byte[] msgBinary = msg.getBytes(Charset.forName("ISO-8859-1"));
+        //From this point on Strings are not Unicode anymore!
+        byte[] msgBinary = msg.getBytes(StandardCharsets.ISO_8859_1);
         StringBuilder sb = new StringBuilder(msgBinary.length);
         for (int i = 0, c = msgBinary.length; i < c; i++) {
             char ch = (char) (msgBinary[i] & 0xff);
             if (ch == '?' && msg.charAt(i) != '?') {
-                throw new IllegalArgumentException(
-                        "Message contains characters outside ISO-8859-1 encoding.");
+                throw new IllegalArgumentException("Message contains characters outside ISO-8859-1 encoding.");
             }
             sb.append(ch);
         }
-        this.msg = sb.toString(); // Not Unicode here!
+        this.msg = sb.toString(); //Not Unicode here!
         shape = SymbolShapeHint.FORCE_NONE;
         this.codewords = new StringBuilder(msg.length());
         newEncoding = -1;

@@ -20,9 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>
- * Implements Reed-Solomon enbcoding, as the name implies.
- * </p>
+ * <p>Implements Reed-Solomon encoding, as the name implies.</p>
  *
  * @author Sean Owen
  * @author William Rucklidge
@@ -35,15 +33,15 @@ public final class ReedSolomonEncoder {
     public ReedSolomonEncoder(GenericGF field) {
         this.field = field;
         this.cachedGenerators = new ArrayList<>();
-        cachedGenerators.add(new GenericGFPoly(field, new int[] { 1 }));
+        cachedGenerators.add(new GenericGFPoly(field, new int[]{1}));
     }
 
     private GenericGFPoly buildGenerator(int degree) {
         if (degree >= cachedGenerators.size()) {
             GenericGFPoly lastGenerator = cachedGenerators.get(cachedGenerators.size() - 1);
             for (int d = cachedGenerators.size(); d <= degree; d++) {
-                GenericGFPoly nextGenerator = lastGenerator.multiply(new GenericGFPoly(field,
-                        new int[] { 1, field.exp(d - 1 + field.getGeneratorBase()) }));
+                GenericGFPoly nextGenerator = lastGenerator.multiply(
+                        new GenericGFPoly(field, new int[]{1, field.exp(d - 1 + field.getGeneratorBase())}));
                 cachedGenerators.add(nextGenerator);
                 lastGenerator = nextGenerator;
             }
@@ -70,8 +68,7 @@ public final class ReedSolomonEncoder {
         for (int i = 0; i < numZeroCoefficients; i++) {
             toEncode[dataBytes + i] = 0;
         }
-        System.arraycopy(coefficients, 0, toEncode, dataBytes + numZeroCoefficients,
-                coefficients.length);
+        System.arraycopy(coefficients, 0, toEncode, dataBytes + numZeroCoefficients, coefficients.length);
     }
 
 }

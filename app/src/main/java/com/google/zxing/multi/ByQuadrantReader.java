@@ -28,12 +28,11 @@ import com.google.zxing.ResultPoint;
 import java.util.Map;
 
 /**
- * This class attempts to decode a barcode from an image, not by scanning the
- * whole image, but by scanning subsets of the image. This is important when
- * there may be multiple barcodes in an image, and detecting a barcode may find
- * parts of multiple barcode and fail to decode (e.g. QR Codes). Instead this
- * scans the four quadrants of the image -- and also the center 'quadrant' to
- * cover the case where a barcode is found in the center.
+ * This class attempts to decode a barcode from an image, not by scanning the whole image,
+ * but by scanning subsets of the image. This is important when there may be multiple barcodes in
+ * an image, and detecting a barcode may find parts of multiple barcode and fail to decode
+ * (e.g. QR Codes). Instead this scans the four quadrants of the image -- and also the center
+ * 'quadrant' to cover the case where a barcode is found in the center.
  *
  * @see GenericMultipleBarcodeReader
  */
@@ -46,8 +45,8 @@ public final class ByQuadrantReader implements Reader {
     }
 
     @Override
-    public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException,
-            FormatException {
+    public Result decode(BinaryBitmap image)
+            throws NotFoundException, ChecksumException, FormatException {
         return decode(image, null);
     }
 
@@ -61,8 +60,7 @@ public final class ByQuadrantReader implements Reader {
         int halfHeight = height / 2;
 
         try {
-            // No need to call makeAbsolute as results will be relative to
-            // original top left here
+            // No need to call makeAbsolute as results will be relative to original top left here
             return delegate.decode(image.crop(0, 0, halfWidth, halfHeight), hints);
         } catch (NotFoundException re) {
             // continue
@@ -77,8 +75,7 @@ public final class ByQuadrantReader implements Reader {
         }
 
         try {
-            Result result = delegate
-                    .decode(image.crop(0, halfHeight, halfWidth, halfHeight), hints);
+            Result result = delegate.decode(image.crop(0, halfHeight, halfWidth, halfHeight), hints);
             makeAbsolute(result.getResultPoints(), 0, halfHeight);
             return result;
         } catch (NotFoundException re) {
@@ -86,8 +83,7 @@ public final class ByQuadrantReader implements Reader {
         }
 
         try {
-            Result result = delegate.decode(
-                    image.crop(halfWidth, halfHeight, halfWidth, halfHeight), hints);
+            Result result = delegate.decode(image.crop(halfWidth, halfHeight, halfWidth, halfHeight), hints);
             makeAbsolute(result.getResultPoints(), halfWidth, halfHeight);
             return result;
         } catch (NotFoundException re) {
@@ -111,8 +107,7 @@ public final class ByQuadrantReader implements Reader {
         if (points != null) {
             for (int i = 0; i < points.length; i++) {
                 ResultPoint relative = points[i];
-                points[i] = new ResultPoint(relative.getX() + leftOffset, relative.getY()
-                        + topOffset);
+                points[i] = new ResultPoint(relative.getX() + leftOffset, relative.getY() + topOffset);
             }
         }
     }

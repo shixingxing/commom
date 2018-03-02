@@ -17,25 +17,31 @@
 package com.google.zxing.qrcode.decoder;
 
 /**
- * <p>
- * See ISO 18004:2006, 6.5.1. This enum encapsulates the four error correction
- * levels defined by the QR code standard.
- * </p>
+ * <p>See ISO 18004:2006, 6.5.1. This enum encapsulates the four error correction levels
+ * defined by the QR code standard.</p>
  *
  * @author Sean Owen
  */
 public enum ErrorCorrectionLevel {
 
-    /** L = ~7% correction */
+    /**
+     * L = ~7% correction
+     */
     L(0x01),
-    /** M = ~15% correction */
+    /**
+     * M = ~15% correction
+     */
     M(0x00),
-    /** Q = ~25% correction */
+    /**
+     * Q = ~25% correction
+     */
     Q(0x03),
-    /** H = ~30% correction */
+    /**
+     * H = ~30% correction
+     */
     H(0x02);
 
-    private static final ErrorCorrectionLevel[] FOR_BITS = { M, L, H, Q };
+    private static final ErrorCorrectionLevel[] FOR_BITS = {M, L, H, Q};
 
     private final int bits;
 
@@ -48,11 +54,8 @@ public enum ErrorCorrectionLevel {
     }
 
     /**
-     * @param bits
-     *            int containing the two bits encoding a QR Code's error
-     *            correction level
-     * @return ErrorCorrectionLevel representing the encoded error correction
-     *         level
+     * @param bits int containing the two bits encoding a QR Code's error correction level
+     * @return ErrorCorrectionLevel representing the encoded error correction level
      */
     public static ErrorCorrectionLevel forBits(int bits) {
         if (bits < 0 || bits >= FOR_BITS.length) {
@@ -60,5 +63,6 @@ public enum ErrorCorrectionLevel {
         }
         return FOR_BITS[bits];
     }
+
 
 }

@@ -43,11 +43,9 @@ final class BarcodeValue {
     }
 
     /**
-     * Determines the maximum occurrence of a set value and returns all values
-     * which were set with this occurrence.
-     * 
-     * @return an array of int, containing the values with the highest
-     *         occurrence, or null, if no value was set
+     * Determines the maximum occurrence of a set value and returns all values which were set with this occurrence.
+     *
+     * @return an array of int, containing the values with the highest occurrence, or null, if no value was set
      */
     int[] getValue() {
         int maxConfidence = -1;
@@ -64,7 +62,7 @@ final class BarcodeValue {
         return PDF417Common.toIntArray(result);
     }
 
-    public Integer getConfidence(int value) {
+    Integer getConfidence(int value) {
         return values.get(value);
     }
 

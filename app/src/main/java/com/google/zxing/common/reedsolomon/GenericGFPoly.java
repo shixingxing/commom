@@ -17,15 +17,11 @@
 package com.google.zxing.common.reedsolomon;
 
 /**
+ * <p>Represents a polynomial whose coefficients are elements of a GF.
+ * Instances of this class are immutable.</p>
  * <p>
- * Represents a polynomial whose coefficients are elements of a GF. Instances of
- * this class are immutable.
- * </p>
- *
- * <p>
- * Much credit is due to William Rucklidge since portions of this code are an
- * indirect port of his C++ Reed-Solomon implementation.
- * </p>
+ * <p>Much credit is due to William Rucklidge since portions of this code are an indirect
+ * port of his C++ Reed-Solomon implementation.</p>
  *
  * @author Sean Owen
  */
@@ -35,17 +31,13 @@ final class GenericGFPoly {
     private final int[] coefficients;
 
     /**
-     * @param field
-     *            the {@link GenericGF} instance representing the field to use
-     *            to perform computations
-     * @param coefficients
-     *            coefficients as ints representing elements of GF(size),
-     *            arranged from most significant (highest-power term)
-     *            coefficient to least significant
-     * @throws IllegalArgumentException
-     *             if argument is null or empty, or if leading coefficient is 0
-     *             and this is not a constant polynomial (that is, it is not the
-     *             monomial "0")
+     * @param field        the {@link GenericGF} instance representing the field to use
+     *                     to perform computations
+     * @param coefficients coefficients as ints representing elements of GF(size), arranged
+     *                     from most significant (highest-power term) coefficient to least significant
+     * @throws IllegalArgumentException if argument is null or empty,
+     *                                  or if leading coefficient is 0 and this is not a
+     *                                  constant polynomial (that is, it is not the monomial "0")
      */
     GenericGFPoly(GenericGF field, int[] coefficients) {
         if (coefficients.length == 0) {
@@ -54,17 +46,19 @@ final class GenericGFPoly {
         this.field = field;
         int coefficientsLength = coefficients.length;
         if (coefficientsLength > 1 && coefficients[0] == 0) {
-            // Leading term must be non-zero for anything except the constant
-            // polynomial "0"
+            // Leading term must be non-zero for anything except the constant polynomial "0"
             int firstNonZero = 1;
             while (firstNonZero < coefficientsLength && coefficients[firstNonZero] == 0) {
                 firstNonZero++;
             }
             if (firstNonZero == coefficientsLength) {
-                this.coefficients = new int[] { 0 };
+                this.coefficients = new int[]{0};
             } else {
                 this.coefficients = new int[coefficientsLength - firstNonZero];
-                System.arraycopy(coefficients, firstNonZero, this.coefficients, 0,
+                System.arraycopy(coefficients,
+                        firstNonZero,
+                        this.coefficients,
+                        0,
                         this.coefficients.length);
             }
         } else {
@@ -105,7 +99,6 @@ final class GenericGFPoly {
             // Just return the x^0 coefficient
             return getCoefficient(0);
         }
-        int size = coefficients.length;
         if (a == 1) {
             // Just the sum of the coefficients
             int result = 0;
@@ -115,6 +108,7 @@ final class GenericGFPoly {
             return result;
         }
         int result = coefficients[0];
+        int size = coefficients.length;
         for (int i = 1; i < size; i++) {
             result = GenericGF.addOrSubtract(field.multiply(a, result), coefficients[i]);
         }
@@ -141,13 +135,11 @@ final class GenericGFPoly {
         }
         int[] sumDiff = new int[largerCoefficients.length];
         int lengthDiff = largerCoefficients.length - smallerCoefficients.length;
-        // Copy high-order terms only found in higher-degree polynomial's
-        // coefficients
+        // Copy high-order terms only found in higher-degree polynomial's coefficients
         System.arraycopy(largerCoefficients, 0, sumDiff, 0, lengthDiff);
 
         for (int i = lengthDiff; i < largerCoefficients.length; i++) {
-            sumDiff[i] = GenericGF.addOrSubtract(smallerCoefficients[i - lengthDiff],
-                    largerCoefficients[i]);
+            sumDiff[i] = GenericGF.addOrSubtract(smallerCoefficients[i - lengthDiff], largerCoefficients[i]);
         }
 
         return new GenericGFPoly(field, sumDiff);
@@ -221,15 +213,14 @@ final class GenericGFPoly {
 
         while (remainder.getDegree() >= other.getDegree() && !remainder.isZero()) {
             int degreeDifference = remainder.getDegree() - other.getDegree();
-            int scale = field.multiply(remainder.getCoefficient(remainder.getDegree()),
-                    inverseDenominatorLeadingTerm);
+            int scale = field.multiply(remainder.getCoefficient(remainder.getDegree()), inverseDenominatorLeadingTerm);
             GenericGFPoly term = other.multiplyByMonomial(degreeDifference, scale);
             GenericGFPoly iterationQuotient = field.buildMonomial(degreeDifference, scale);
             quotient = quotient.addOrSubtract(iterationQuotient);
             remainder = remainder.addOrSubtract(term);
         }
 
-        return new GenericGFPoly[] { quotient, remainder };
+        return new GenericGFPoly[]{quotient, remainder};
     }
 
     @Override

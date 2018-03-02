@@ -17,8 +17,7 @@
 package com.google.zxing.pdf417.encoder;
 
 /**
- * Data object to specify the minimum and maximum number of rows and columns for
- * a PDF417 barcode.
+ * Data object to specify the minimum and maximum number of rows and columns for a PDF417 barcode.
  *
  * @author qwandor@google.com (Andrew Walbran)
  */

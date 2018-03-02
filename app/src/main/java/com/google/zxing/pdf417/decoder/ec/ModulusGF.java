@@ -19,9 +19,7 @@ package com.google.zxing.pdf417.decoder.ec;
 import com.google.zxing.pdf417.PDF417Common;
 
 /**
- * <p>
- * A field based on powers of a generator integer, modulo some modulus.
- * </p>
+ * <p>A field based on powers of a generator integer, modulo some modulus.</p>
  *
  * @author Sean Owen
  * @see com.google.zxing.common.reedsolomon.GenericGF
@@ -49,9 +47,10 @@ public final class ModulusGF {
             logTable[expTable[i]] = i;
         }
         // logTable[0] == 0 but this should never be used
-        zero = new ModulusPoly(this, new int[] { 0 });
-        one = new ModulusPoly(this, new int[] { 1 });
+        zero = new ModulusPoly(this, new int[]{0});
+        one = new ModulusPoly(this, new int[]{1});
     }
+
 
     ModulusPoly getZero() {
         return zero;

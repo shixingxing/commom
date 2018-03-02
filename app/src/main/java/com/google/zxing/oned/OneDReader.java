@@ -46,11 +46,10 @@ public abstract class OneDReader implements Reader {
         return decode(image, null);
     }
 
-    // Note that we don't try rotation without the try harder flag, even if
-    // rotation was supported.
+    // Note that we don't try rotation without the try harder flag, even if rotation was supported.
     @Override
-    public Result decode(BinaryBitmap image, Map<DecodeHintType, ?> hints)
-            throws NotFoundException, FormatException {
+    public Result decode(BinaryBitmap image,
+                         Map<DecodeHintType, ?> hints) throws NotFoundException, FormatException {
         try {
             return doDecode(image, hints);
         } catch (NotFoundException nfe) {
@@ -58,15 +57,13 @@ public abstract class OneDReader implements Reader {
             if (tryHarder && image.isRotateSupported()) {
                 BinaryBitmap rotatedImage = image.rotateCounterClockwise();
                 Result result = doDecode(rotatedImage, hints);
-                // Record that we found it rotated 90 degrees CCW / 270 degrees
-                // CW
+                // Record that we found it rotated 90 degrees CCW / 270 degrees CW
                 Map<ResultMetadataType, ?> metadata = result.getResultMetadata();
                 int orientation = 270;
                 if (metadata != null && metadata.containsKey(ResultMetadataType.ORIENTATION)) {
-                    // But if we found it reversed in doDecode(), add in that
-                    // result here:
-                    orientation = (orientation + (Integer) metadata
-                            .get(ResultMetadataType.ORIENTATION)) % 360;
+                    // But if we found it reversed in doDecode(), add in that result here:
+                    orientation = (orientation +
+                            (Integer) metadata.get(ResultMetadataType.ORIENTATION)) % 360;
                 }
                 result.putMetadata(ResultMetadataType.ORIENTATION, orientation);
                 // Update result points
@@ -90,48 +87,41 @@ public abstract class OneDReader implements Reader {
     }
 
     /**
-     * We're going to examine rows from the middle outward, searching
-     * alternately above and below the middle, and farther out each time.
-     * rowStep is the number of rows between each successive attempt above and
-     * below the middle. So we'd scan row middle, then middle - rowStep, then
-     * middle + rowStep, then middle - (2 * rowStep), etc. rowStep is bigger as
-     * the image is taller, but is always at least 1. We've somewhat arbitrarily
-     * decided that moving up and down by about 1/16 of the image is pretty
-     * good; we try more of the image if "trying harder".
+     * We're going to examine rows from the middle outward, searching alternately above and below the
+     * middle, and farther out each time. rowStep is the number of rows between each successive
+     * attempt above and below the middle. So we'd scan row middle, then middle - rowStep, then
+     * middle + rowStep, then middle - (2 * rowStep), etc.
+     * rowStep is bigger as the image is taller, but is always at least 1. We've somewhat arbitrarily
+     * decided that moving up and down by about 1/16 of the image is pretty good; we try more of the
+     * image if "trying harder".
      *
-     * @param image
-     *            The image to decode
-     * @param hints
-     *            Any hints that were requested
+     * @param image The image to decode
+     * @param hints Any hints that were requested
      * @return The contents of the decoded barcode
-     * @throws NotFoundException
-     *             Any spontaneous errors which occur
+     * @throws NotFoundException Any spontaneous errors which occur
      */
-    private Result doDecode(BinaryBitmap image, Map<DecodeHintType, ?> hints)
-            throws NotFoundException {
+    private Result doDecode(BinaryBitmap image,
+                            Map<DecodeHintType, ?> hints) throws NotFoundException {
         int width = image.getWidth();
         int height = image.getHeight();
         BitArray row = new BitArray(width);
 
-        int middle = height >> 1;
         boolean tryHarder = hints != null && hints.containsKey(DecodeHintType.TRY_HARDER);
         int rowStep = Math.max(1, height >> (tryHarder ? 8 : 5));
         int maxLines;
         if (tryHarder) {
             maxLines = height; // Look at the whole image, not just the center
         } else {
-            maxLines = 15; // 15 rows spaced 1/32 apart is roughly the middle
-                           // half of the image
+            maxLines = 15; // 15 rows spaced 1/32 apart is roughly the middle half of the image
         }
 
+        int middle = height / 2;
         for (int x = 0; x < maxLines; x++) {
 
-            // Scanning from the middle out. Determine which row we're looking
-            // at next:
+            // Scanning from the middle out. Determine which row we're looking at next:
             int rowStepsAboveOrBelow = (x + 1) / 2;
             boolean isAbove = (x & 0x01) == 0; // i.e. is x even?
-            int rowNumber = middle + rowStep
-                    * (isAbove ? rowStepsAboveOrBelow : -rowStepsAboveOrBelow);
+            int rowNumber = middle + rowStep * (isAbove ? rowStepsAboveOrBelow : -rowStepsAboveOrBelow);
             if (rowNumber < 0 || rowNumber >= height) {
                 // Oops, if we run off the top or bottom, stop
                 break;
@@ -144,21 +134,16 @@ public abstract class OneDReader implements Reader {
                 continue;
             }
 
-            // While we have the image data in a BitArray, it's fairly cheap to
-            // reverse it in place to
+            // While we have the image data in a BitArray, it's fairly cheap to reverse it in place to
             // handle decoding upside down barcodes.
             for (int attempt = 0; attempt < 2; attempt++) {
                 if (attempt == 1) { // trying again?
                     row.reverse(); // reverse the row and continue
-                    // This means we will only ever draw result points *once* in
-                    // the life of this method
-                    // since we want to avoid drawing the wrong points after
-                    // flipping the row, and,
-                    // don't want to clutter with noise from every single row
-                    // scan -- just the scans
+                    // This means we will only ever draw result points *once* in the life of this method
+                    // since we want to avoid drawing the wrong points after flipping the row, and,
+                    // don't want to clutter with noise from every single row scan -- just the scans
                     // that start on the center line.
-                    if (hints != null
-                            && hints.containsKey(DecodeHintType.NEED_RESULT_POINT_CALLBACK)) {
+                    if (hints != null && hints.containsKey(DecodeHintType.NEED_RESULT_POINT_CALLBACK)) {
                         Map<DecodeHintType, Object> newHints = new EnumMap<>(DecodeHintType.class);
                         newHints.putAll(hints);
                         newHints.remove(DecodeHintType.NEED_RESULT_POINT_CALLBACK);
@@ -175,10 +160,8 @@ public abstract class OneDReader implements Reader {
                         // And remember to flip the result points horizontally.
                         ResultPoint[] points = result.getResultPoints();
                         if (points != null) {
-                            points[0] = new ResultPoint(width - points[0].getX() - 1,
-                                    points[0].getY());
-                            points[1] = new ResultPoint(width - points[1].getX() - 1,
-                                    points[1].getY());
+                            points[0] = new ResultPoint(width - points[0].getX() - 1, points[0].getY());
+                            points[1] = new ResultPoint(width - points[1].getX() - 1, points[1].getY());
                         }
                     }
                     return result;
@@ -192,26 +175,21 @@ public abstract class OneDReader implements Reader {
     }
 
     /**
-     * Records the size of successive runs of white and black pixels in a row,
-     * starting at a given point. The values are recorded in the given array,
-     * and the number of runs recorded is equal to the size of the array. If the
-     * row starts on a white pixel at the given start point, then the first
-     * count recorded is the run of white pixels starting from that point;
-     * likewise it is the count of a run of black pixels if the row begin on a
-     * black pixels at that point.
+     * Records the size of successive runs of white and black pixels in a row, starting at a given point.
+     * The values are recorded in the given array, and the number of runs recorded is equal to the size
+     * of the array. If the row starts on a white pixel at the given start point, then the first count
+     * recorded is the run of white pixels starting from that point; likewise it is the count of a run
+     * of black pixels if the row begin on a black pixels at that point.
      *
-     * @param row
-     *            row to count from
-     * @param start
-     *            offset into row to start at
-     * @param counters
-     *            array into which to record counts
-     * @throws NotFoundException
-     *             if counters cannot be filled entirely from row before running
-     *             out of pixels
+     * @param row      row to count from
+     * @param start    offset into row to start at
+     * @param counters array into which to record counts
+     * @throws NotFoundException if counters cannot be filled entirely from row before running out
+     *                           of pixels
      */
-    protected static void recordPattern(BitArray row, int start, int[] counters)
-            throws NotFoundException {
+    protected static void recordPattern(BitArray row,
+                                        int start,
+                                        int[] counters) throws NotFoundException {
         int numCounters = counters.length;
         Arrays.fill(counters, 0, numCounters, 0);
         int end = row.getSize();
@@ -222,11 +200,10 @@ public abstract class OneDReader implements Reader {
         int counterPosition = 0;
         int i = start;
         while (i < end) {
-            if (row.get(i) ^ isWhite) { // that is, exactly one is true
+            if (row.get(i) != isWhite) {
                 counters[counterPosition]++;
             } else {
-                counterPosition++;
-                if (counterPosition == numCounters) {
+                if (++counterPosition == numCounters) {
                     break;
                 } else {
                     counters[counterPosition] = 1;
@@ -235,10 +212,8 @@ public abstract class OneDReader implements Reader {
             }
             i++;
         }
-        // If we read fully the last section of pixels and filled up our
-        // counters -- or filled
-        // the last counter but ran off the side of the image, OK. Otherwise, a
-        // problem.
+        // If we read fully the last section of pixels and filled up our counters -- or filled
+        // the last counter but ran off the side of the image, OK. Otherwise, a problem.
         if (!(counterPosition == numCounters || (counterPosition == numCounters - 1 && i == end))) {
             throw NotFoundException.getNotFoundInstance();
         }
@@ -262,22 +237,18 @@ public abstract class OneDReader implements Reader {
     }
 
     /**
-     * Determines how closely a set of observed counts of runs of black/white
-     * values matches a given target pattern. This is reported as the ratio of
-     * the total variance from the expected pattern proportions across all
-     * pattern elements, to the length of the pattern.
+     * Determines how closely a set of observed counts of runs of black/white values matches a given
+     * target pattern. This is reported as the ratio of the total variance from the expected pattern
+     * proportions across all pattern elements, to the length of the pattern.
      *
-     * @param counters
-     *            observed counters
-     * @param pattern
-     *            expected pattern
-     * @param maxIndividualVariance
-     *            The most any counter can differ before we give up
-     * @return ratio of total variance between counters and pattern compared to
-     *         total pattern size
+     * @param counters              observed counters
+     * @param pattern               expected pattern
+     * @param maxIndividualVariance The most any counter can differ before we give up
+     * @return ratio of total variance between counters and pattern compared to total pattern size
      */
-    protected static float patternMatchVariance(int[] counters, int[] pattern,
-            float maxIndividualVariance) {
+    protected static float patternMatchVariance(int[] counters,
+                                                int[] pattern,
+                                                float maxIndividualVariance) {
         int numCounters = counters.length;
         int total = 0;
         int patternLength = 0;
@@ -286,8 +257,7 @@ public abstract class OneDReader implements Reader {
             patternLength += pattern[i];
         }
         if (total < patternLength) {
-            // If we don't even have one pixel per unit of bar width, assume
-            // this is too small
+            // If we don't even have one pixel per unit of bar width, assume this is too small
             // to reliably match, so fail:
             return Float.POSITIVE_INFINITY;
         }
@@ -299,8 +269,7 @@ public abstract class OneDReader implements Reader {
         for (int x = 0; x < numCounters; x++) {
             int counter = counters[x];
             float scaledPattern = pattern[x] * unitBarWidth;
-            float variance = counter > scaledPattern ? counter - scaledPattern : scaledPattern
-                    - counter;
+            float variance = counter > scaledPattern ? counter - scaledPattern : scaledPattern - counter;
             if (variance > maxIndividualVariance) {
                 return Float.POSITIVE_INFINITY;
             }
@@ -310,25 +279,16 @@ public abstract class OneDReader implements Reader {
     }
 
     /**
-     * <p>
-     * Attempts to decode a one-dimensional barcode format given a single row of
-     * an image.
-     * </p>
+     * <p>Attempts to decode a one-dimensional barcode format given a single row of
+     * an image.</p>
      *
-     * @param rowNumber
-     *            row number from top of the row
-     * @param row
-     *            the black/white pixel data of the row
-     * @param hints
-     *            decode hints
+     * @param rowNumber row number from top of the row
+     * @param row       the black/white pixel data of the row
+     * @param hints     decode hints
      * @return {@link Result} containing encoded string and start/end of barcode
-     * @throws NotFoundException
-     *             if no potential barcode is found
-     * @throws ChecksumException
-     *             if a potential barcode is found but does not pass its
-     *             checksum
-     * @throws FormatException
-     *             if a potential barcode is found but format is invalid
+     * @throws NotFoundException if no potential barcode is found
+     * @throws ChecksumException if a potential barcode is found but does not pass its checksum
+     * @throws FormatException   if a potential barcode is found but format is invalid
      */
     public abstract Result decodeRow(int rowNumber, BitArray row, Map<DecodeHintType, ?> hints)
             throws NotFoundException, ChecksumException, FormatException;

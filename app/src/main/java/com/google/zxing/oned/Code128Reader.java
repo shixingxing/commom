@@ -30,116 +30,121 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>
- * Decodes Code 128 barcodes.
- * </p>
+ * <p>Decodes Code 128 barcodes.</p>
  *
  * @author Sean Owen
  */
 public final class Code128Reader extends OneDReader {
 
     static final int[][] CODE_PATTERNS = {
-            { 2, 1, 2, 2, 2, 2 }, // 0
-            { 2, 2, 2, 1, 2, 2 },
-            { 2, 2, 2, 2, 2, 1 },
-            { 1, 2, 1, 2, 2, 3 },
-            { 1, 2, 1, 3, 2, 2 },
-            { 1, 3, 1, 2, 2, 2 }, // 5
-            { 1, 2, 2, 2, 1, 3 },
-            { 1, 2, 2, 3, 1, 2 },
-            { 1, 3, 2, 2, 1, 2 },
-            { 2, 2, 1, 2, 1, 3 },
-            { 2, 2, 1, 3, 1, 2 }, // 10
-            { 2, 3, 1, 2, 1, 2 },
-            { 1, 1, 2, 2, 3, 2 },
-            { 1, 2, 2, 1, 3, 2 },
-            { 1, 2, 2, 2, 3, 1 },
-            { 1, 1, 3, 2, 2, 2 }, // 15
-            { 1, 2, 3, 1, 2, 2 },
-            { 1, 2, 3, 2, 2, 1 },
-            { 2, 2, 3, 2, 1, 1 },
-            { 2, 2, 1, 1, 3, 2 },
-            { 2, 2, 1, 2, 3, 1 }, // 20
-            { 2, 1, 3, 2, 1, 2 },
-            { 2, 2, 3, 1, 1, 2 },
-            { 3, 1, 2, 1, 3, 1 },
-            { 3, 1, 1, 2, 2, 2 },
-            { 3, 2, 1, 1, 2, 2 }, // 25
-            { 3, 2, 1, 2, 2, 1 },
-            { 3, 1, 2, 2, 1, 2 },
-            { 3, 2, 2, 1, 1, 2 },
-            { 3, 2, 2, 2, 1, 1 },
-            { 2, 1, 2, 1, 2, 3 }, // 30
-            { 2, 1, 2, 3, 2, 1 },
-            { 2, 3, 2, 1, 2, 1 },
-            { 1, 1, 1, 3, 2, 3 },
-            { 1, 3, 1, 1, 2, 3 },
-            { 1, 3, 1, 3, 2, 1 }, // 35
-            { 1, 1, 2, 3, 1, 3 },
-            { 1, 3, 2, 1, 1, 3 },
-            { 1, 3, 2, 3, 1, 1 },
-            { 2, 1, 1, 3, 1, 3 },
-            { 2, 3, 1, 1, 1, 3 }, // 40
-            { 2, 3, 1, 3, 1, 1 },
-            { 1, 1, 2, 1, 3, 3 },
-            { 1, 1, 2, 3, 3, 1 },
-            { 1, 3, 2, 1, 3, 1 },
-            { 1, 1, 3, 1, 2, 3 }, // 45
-            { 1, 1, 3, 3, 2, 1 },
-            { 1, 3, 3, 1, 2, 1 },
-            { 3, 1, 3, 1, 2, 1 },
-            { 2, 1, 1, 3, 3, 1 },
-            { 2, 3, 1, 1, 3, 1 }, // 50
-            { 2, 1, 3, 1, 1, 3 },
-            { 2, 1, 3, 3, 1, 1 },
-            { 2, 1, 3, 1, 3, 1 },
-            { 3, 1, 1, 1, 2, 3 },
-            { 3, 1, 1, 3, 2, 1 }, // 55
-            { 3, 3, 1, 1, 2, 1 },
-            { 3, 1, 2, 1, 1, 3 },
-            { 3, 1, 2, 3, 1, 1 },
-            { 3, 3, 2, 1, 1, 1 },
-            { 3, 1, 4, 1, 1, 1 }, // 60
-            { 2, 2, 1, 4, 1, 1 },
-            { 4, 3, 1, 1, 1, 1 },
-            { 1, 1, 1, 2, 2, 4 },
-            { 1, 1, 1, 4, 2, 2 },
-            { 1, 2, 1, 1, 2, 4 }, // 65
-            { 1, 2, 1, 4, 2, 1 },
-            { 1, 4, 1, 1, 2, 2 },
-            { 1, 4, 1, 2, 2, 1 },
-            { 1, 1, 2, 2, 1, 4 },
-            { 1, 1, 2, 4, 1, 2 }, // 70
-            { 1, 2, 2, 1, 1, 4 },
-            { 1, 2, 2, 4, 1, 1 },
-            { 1, 4, 2, 1, 1, 2 },
-            { 1, 4, 2, 2, 1, 1 },
-            { 2, 4, 1, 2, 1, 1 }, // 75
-            { 2, 2, 1, 1, 1, 4 },
-            { 4, 1, 3, 1, 1, 1 },
-            { 2, 4, 1, 1, 1, 2 },
-            { 1, 3, 4, 1, 1, 1 },
-            { 1, 1, 1, 2, 4, 2 }, // 80
-            { 1, 2, 1, 1, 4, 2 },
-            { 1, 2, 1, 2, 4, 1 },
-            { 1, 1, 4, 2, 1, 2 },
-            { 1, 2, 4, 1, 1, 2 },
-            { 1, 2, 4, 2, 1, 1 }, // 85
-            { 4, 1, 1, 2, 1, 2 },
-            { 4, 2, 1, 1, 1, 2 },
-            { 4, 2, 1, 2, 1, 1 },
-            { 2, 1, 2, 1, 4, 1 },
-            { 2, 1, 4, 1, 2, 1 }, // 90
-            { 4, 1, 2, 1, 2, 1 }, { 1, 1, 1, 1, 4, 3 },
-            { 1, 1, 1, 3, 4, 1 },
-            { 1, 3, 1, 1, 4, 1 },
-            { 1, 1, 4, 1, 1, 3 }, // 95
-            { 1, 1, 4, 3, 1, 1 }, { 4, 1, 1, 1, 1, 3 }, { 4, 1, 1, 3, 1, 1 },
-            { 1, 1, 3, 1, 4, 1 },
-            { 1, 1, 4, 1, 3, 1 }, // 100
-            { 3, 1, 1, 1, 4, 1 }, { 4, 1, 1, 1, 3, 1 }, { 2, 1, 1, 4, 1, 2 }, { 2, 1, 1, 2, 1, 4 },
-            { 2, 1, 1, 2, 3, 2 }, // 105
-            { 2, 3, 3, 1, 1, 1, 2 } };
+            {2, 1, 2, 2, 2, 2}, // 0
+            {2, 2, 2, 1, 2, 2},
+            {2, 2, 2, 2, 2, 1},
+            {1, 2, 1, 2, 2, 3},
+            {1, 2, 1, 3, 2, 2},
+            {1, 3, 1, 2, 2, 2}, // 5
+            {1, 2, 2, 2, 1, 3},
+            {1, 2, 2, 3, 1, 2},
+            {1, 3, 2, 2, 1, 2},
+            {2, 2, 1, 2, 1, 3},
+            {2, 2, 1, 3, 1, 2}, // 10
+            {2, 3, 1, 2, 1, 2},
+            {1, 1, 2, 2, 3, 2},
+            {1, 2, 2, 1, 3, 2},
+            {1, 2, 2, 2, 3, 1},
+            {1, 1, 3, 2, 2, 2}, // 15
+            {1, 2, 3, 1, 2, 2},
+            {1, 2, 3, 2, 2, 1},
+            {2, 2, 3, 2, 1, 1},
+            {2, 2, 1, 1, 3, 2},
+            {2, 2, 1, 2, 3, 1}, // 20
+            {2, 1, 3, 2, 1, 2},
+            {2, 2, 3, 1, 1, 2},
+            {3, 1, 2, 1, 3, 1},
+            {3, 1, 1, 2, 2, 2},
+            {3, 2, 1, 1, 2, 2}, // 25
+            {3, 2, 1, 2, 2, 1},
+            {3, 1, 2, 2, 1, 2},
+            {3, 2, 2, 1, 1, 2},
+            {3, 2, 2, 2, 1, 1},
+            {2, 1, 2, 1, 2, 3}, // 30
+            {2, 1, 2, 3, 2, 1},
+            {2, 3, 2, 1, 2, 1},
+            {1, 1, 1, 3, 2, 3},
+            {1, 3, 1, 1, 2, 3},
+            {1, 3, 1, 3, 2, 1}, // 35
+            {1, 1, 2, 3, 1, 3},
+            {1, 3, 2, 1, 1, 3},
+            {1, 3, 2, 3, 1, 1},
+            {2, 1, 1, 3, 1, 3},
+            {2, 3, 1, 1, 1, 3}, // 40
+            {2, 3, 1, 3, 1, 1},
+            {1, 1, 2, 1, 3, 3},
+            {1, 1, 2, 3, 3, 1},
+            {1, 3, 2, 1, 3, 1},
+            {1, 1, 3, 1, 2, 3}, // 45
+            {1, 1, 3, 3, 2, 1},
+            {1, 3, 3, 1, 2, 1},
+            {3, 1, 3, 1, 2, 1},
+            {2, 1, 1, 3, 3, 1},
+            {2, 3, 1, 1, 3, 1}, // 50
+            {2, 1, 3, 1, 1, 3},
+            {2, 1, 3, 3, 1, 1},
+            {2, 1, 3, 1, 3, 1},
+            {3, 1, 1, 1, 2, 3},
+            {3, 1, 1, 3, 2, 1}, // 55
+            {3, 3, 1, 1, 2, 1},
+            {3, 1, 2, 1, 1, 3},
+            {3, 1, 2, 3, 1, 1},
+            {3, 3, 2, 1, 1, 1},
+            {3, 1, 4, 1, 1, 1}, // 60
+            {2, 2, 1, 4, 1, 1},
+            {4, 3, 1, 1, 1, 1},
+            {1, 1, 1, 2, 2, 4},
+            {1, 1, 1, 4, 2, 2},
+            {1, 2, 1, 1, 2, 4}, // 65
+            {1, 2, 1, 4, 2, 1},
+            {1, 4, 1, 1, 2, 2},
+            {1, 4, 1, 2, 2, 1},
+            {1, 1, 2, 2, 1, 4},
+            {1, 1, 2, 4, 1, 2}, // 70
+            {1, 2, 2, 1, 1, 4},
+            {1, 2, 2, 4, 1, 1},
+            {1, 4, 2, 1, 1, 2},
+            {1, 4, 2, 2, 1, 1},
+            {2, 4, 1, 2, 1, 1}, // 75
+            {2, 2, 1, 1, 1, 4},
+            {4, 1, 3, 1, 1, 1},
+            {2, 4, 1, 1, 1, 2},
+            {1, 3, 4, 1, 1, 1},
+            {1, 1, 1, 2, 4, 2}, // 80
+            {1, 2, 1, 1, 4, 2},
+            {1, 2, 1, 2, 4, 1},
+            {1, 1, 4, 2, 1, 2},
+            {1, 2, 4, 1, 1, 2},
+            {1, 2, 4, 2, 1, 1}, // 85
+            {4, 1, 1, 2, 1, 2},
+            {4, 2, 1, 1, 1, 2},
+            {4, 2, 1, 2, 1, 1},
+            {2, 1, 2, 1, 4, 1},
+            {2, 1, 4, 1, 2, 1}, // 90
+            {4, 1, 2, 1, 2, 1},
+            {1, 1, 1, 1, 4, 3},
+            {1, 1, 1, 3, 4, 1},
+            {1, 3, 1, 1, 4, 1},
+            {1, 1, 4, 1, 1, 3}, // 95
+            {1, 1, 4, 3, 1, 1},
+            {4, 1, 1, 1, 1, 3},
+            {4, 1, 1, 3, 1, 1},
+            {1, 1, 3, 1, 4, 1},
+            {1, 1, 4, 1, 3, 1}, // 100
+            {3, 1, 1, 1, 4, 1},
+            {4, 1, 1, 1, 3, 1},
+            {2, 1, 1, 4, 1, 2},
+            {2, 1, 1, 2, 1, 4},
+            {2, 1, 1, 2, 3, 2}, // 105
+            {2, 3, 3, 1, 1, 1, 2}
+    };
 
     private static final float MAX_AVG_VARIANCE = 0.25f;
     private static final float MAX_INDIVIDUAL_VARIANCE = 0.7f;
@@ -172,7 +177,7 @@ public final class Code128Reader extends OneDReader {
         int patternLength = counters.length;
 
         for (int i = rowOffset; i < width; i++) {
-            if (row.get(i) ^ isWhite) {
+            if (row.get(i) != isWhite) {
                 counters[counterPosition]++;
             } else {
                 if (counterPosition == patternLength - 1) {
@@ -186,17 +191,15 @@ public final class Code128Reader extends OneDReader {
                             bestMatch = startCode;
                         }
                     }
-                    // Look for whitespace before start pattern, >= 50% of width
-                    // of start pattern
-                    if (bestMatch >= 0
-                            && row.isRange(Math.max(0, patternStart - (i - patternStart) / 2),
-                                    patternStart, false)) {
-                        return new int[] { patternStart, i, bestMatch };
+                    // Look for whitespace before start pattern, >= 50% of width of start pattern
+                    if (bestMatch >= 0 &&
+                            row.isRange(Math.max(0, patternStart - (i - patternStart) / 2), patternStart, false)) {
+                        return new int[]{patternStart, i, bestMatch};
                     }
                     patternStart += counters[0] + counters[1];
-                    System.arraycopy(counters, 2, counters, 0, patternLength - 2);
-                    counters[patternLength - 2] = 0;
-                    counters[patternLength - 1] = 0;
+                    System.arraycopy(counters, 2, counters, 0, counterPosition - 1);
+                    counters[counterPosition - 1] = 0;
+                    counters[counterPosition] = 0;
                     counterPosition--;
                 } else {
                     counterPosition++;
@@ -221,8 +224,7 @@ public final class Code128Reader extends OneDReader {
                 bestMatch = d;
             }
         }
-        // TODO We're overlooking the fact that the STOP pattern has 7 values,
-        // not 6.
+        // TODO We're overlooking the fact that the STOP pattern has 7 values, not 6.
         if (bestMatch >= 0) {
             return bestMatch;
         } else {
@@ -244,17 +246,17 @@ public final class Code128Reader extends OneDReader {
 
         int codeSet;
         switch (startCode) {
-        case CODE_START_A:
-            codeSet = CODE_CODE_A;
-            break;
-        case CODE_START_B:
-            codeSet = CODE_CODE_B;
-            break;
-        case CODE_START_C:
-            codeSet = CODE_CODE_C;
-            break;
-        default:
-            throw FormatException.getFormatInstance();
+            case CODE_START_A:
+                codeSet = CODE_CODE_A;
+                break;
+            case CODE_START_B:
+                codeSet = CODE_CODE_B;
+                break;
+            case CODE_START_C:
+                codeSet = CODE_CODE_C;
+                break;
+            default:
+                throw FormatException.getFormatInstance();
         }
 
         boolean done = false;
@@ -287,8 +289,7 @@ public final class Code128Reader extends OneDReader {
 
             rawCodes.add((byte) code);
 
-            // Remember whether the last code was printable or not (excluding
-            // CODE_STOP)
+            // Remember whether the last code was printable or not (excluding CODE_STOP)
             if (code != CODE_STOP) {
                 lastCharacterWasPrintable = true;
             }
@@ -307,180 +308,170 @@ public final class Code128Reader extends OneDReader {
 
             // Take care of illegal start codes
             switch (code) {
-            case CODE_START_A:
-            case CODE_START_B:
-            case CODE_START_C:
-                throw FormatException.getFormatInstance();
+                case CODE_START_A:
+                case CODE_START_B:
+                case CODE_START_C:
+                    throw FormatException.getFormatInstance();
             }
 
             switch (codeSet) {
 
-            case CODE_CODE_A:
-                if (code < 64) {
-                    if (shiftUpperMode == upperMode) {
-                        result.append((char) (' ' + code));
-                    } else {
-                        result.append((char) (' ' + code + 128));
-                    }
-                    shiftUpperMode = false;
-                } else if (code < 96) {
-                    if (shiftUpperMode == upperMode) {
-                        result.append((char) (code - 64));
-                    } else {
-                        result.append((char) (code + 64));
-                    }
-                    shiftUpperMode = false;
-                } else {
-                    // Don't let CODE_STOP, which always appears, affect whether
-                    // whether we think the last
-                    // code was printable or not.
-                    if (code != CODE_STOP) {
-                        lastCharacterWasPrintable = false;
-                    }
-                    switch (code) {
-                    case CODE_FNC_1:
-                        if (convertFNC1) {
-                            if (result.length() == 0) {
-                                // GS1 specification 5.4.3.7. and 5.4.6.4. If
-                                // the first char after the start code
-                                // is FNC1 then this is GS1-128. We add the
-                                // symbology identifier.
-                                result.append("]C1");
-                            } else {
-                                // GS1 specification 5.4.7.5. Every subsequent
-                                // FNC1 is returned as ASCII 29 (GS)
-                                result.append((char) 29);
-                            }
-                        }
-                        break;
-                    case CODE_FNC_2:
-                    case CODE_FNC_3:
-                        // do nothing?
-                        break;
-                    case CODE_FNC_4_A:
-                        if (!upperMode && shiftUpperMode) {
-                            upperMode = true;
-                            shiftUpperMode = false;
-                        } else if (upperMode && shiftUpperMode) {
-                            upperMode = false;
-                            shiftUpperMode = false;
+                case CODE_CODE_A:
+                    if (code < 64) {
+                        if (shiftUpperMode == upperMode) {
+                            result.append((char) (' ' + code));
                         } else {
-                            shiftUpperMode = true;
+                            result.append((char) (' ' + code + 128));
                         }
-                        break;
-                    case CODE_SHIFT:
-                        isNextShifted = true;
-                        codeSet = CODE_CODE_B;
-                        break;
-                    case CODE_CODE_B:
-                        codeSet = CODE_CODE_B;
-                        break;
-                    case CODE_CODE_C:
-                        codeSet = CODE_CODE_C;
-                        break;
-                    case CODE_STOP:
-                        done = true;
-                        break;
-                    }
-                }
-                break;
-            case CODE_CODE_B:
-                if (code < 96) {
-                    if (shiftUpperMode == upperMode) {
-                        result.append((char) (' ' + code));
-                    } else {
-                        result.append((char) (' ' + code + 128));
-                    }
-                    shiftUpperMode = false;
-                } else {
-                    if (code != CODE_STOP) {
-                        lastCharacterWasPrintable = false;
-                    }
-                    switch (code) {
-                    case CODE_FNC_1:
-                        if (convertFNC1) {
-                            if (result.length() == 0) {
-                                // GS1 specification 5.4.3.7. and 5.4.6.4. If
-                                // the first char after the start code
-                                // is FNC1 then this is GS1-128. We add the
-                                // symbology identifier.
-                                result.append("]C1");
-                            } else {
-                                // GS1 specification 5.4.7.5. Every subsequent
-                                // FNC1 is returned as ASCII 29 (GS)
-                                result.append((char) 29);
-                            }
-                        }
-                        break;
-                    case CODE_FNC_2:
-                    case CODE_FNC_3:
-                        // do nothing?
-                        break;
-                    case CODE_FNC_4_B:
-                        if (!upperMode && shiftUpperMode) {
-                            upperMode = true;
-                            shiftUpperMode = false;
-                        } else if (upperMode && shiftUpperMode) {
-                            upperMode = false;
-                            shiftUpperMode = false;
+                        shiftUpperMode = false;
+                    } else if (code < 96) {
+                        if (shiftUpperMode == upperMode) {
+                            result.append((char) (code - 64));
                         } else {
-                            shiftUpperMode = true;
+                            result.append((char) (code + 64));
                         }
-                        break;
-                    case CODE_SHIFT:
-                        isNextShifted = true;
-                        codeSet = CODE_CODE_A;
-                        break;
-                    case CODE_CODE_A:
-                        codeSet = CODE_CODE_A;
-                        break;
-                    case CODE_CODE_C:
-                        codeSet = CODE_CODE_C;
-                        break;
-                    case CODE_STOP:
-                        done = true;
-                        break;
-                    }
-                }
-                break;
-            case CODE_CODE_C:
-                if (code < 100) {
-                    if (code < 10) {
-                        result.append('0');
-                    }
-                    result.append(code);
-                } else {
-                    if (code != CODE_STOP) {
-                        lastCharacterWasPrintable = false;
-                    }
-                    switch (code) {
-                    case CODE_FNC_1:
-                        if (convertFNC1) {
-                            if (result.length() == 0) {
-                                // GS1 specification 5.4.3.7. and 5.4.6.4. If
-                                // the first char after the start code
-                                // is FNC1 then this is GS1-128. We add the
-                                // symbology identifier.
-                                result.append("]C1");
-                            } else {
-                                // GS1 specification 5.4.7.5. Every subsequent
-                                // FNC1 is returned as ASCII 29 (GS)
-                                result.append((char) 29);
-                            }
+                        shiftUpperMode = false;
+                    } else {
+                        // Don't let CODE_STOP, which always appears, affect whether whether we think the last
+                        // code was printable or not.
+                        if (code != CODE_STOP) {
+                            lastCharacterWasPrintable = false;
                         }
-                        break;
-                    case CODE_CODE_A:
-                        codeSet = CODE_CODE_A;
-                        break;
-                    case CODE_CODE_B:
-                        codeSet = CODE_CODE_B;
-                        break;
-                    case CODE_STOP:
-                        done = true;
-                        break;
+                        switch (code) {
+                            case CODE_FNC_1:
+                                if (convertFNC1) {
+                                    if (result.length() == 0) {
+                                        // GS1 specification 5.4.3.7. and 5.4.6.4. If the first char after the start code
+                                        // is FNC1 then this is GS1-128. We add the symbology identifier.
+                                        result.append("]C1");
+                                    } else {
+                                        // GS1 specification 5.4.7.5. Every subsequent FNC1 is returned as ASCII 29 (GS)
+                                        result.append((char) 29);
+                                    }
+                                }
+                                break;
+                            case CODE_FNC_2:
+                            case CODE_FNC_3:
+                                // do nothing?
+                                break;
+                            case CODE_FNC_4_A:
+                                if (!upperMode && shiftUpperMode) {
+                                    upperMode = true;
+                                    shiftUpperMode = false;
+                                } else if (upperMode && shiftUpperMode) {
+                                    upperMode = false;
+                                    shiftUpperMode = false;
+                                } else {
+                                    shiftUpperMode = true;
+                                }
+                                break;
+                            case CODE_SHIFT:
+                                isNextShifted = true;
+                                codeSet = CODE_CODE_B;
+                                break;
+                            case CODE_CODE_B:
+                                codeSet = CODE_CODE_B;
+                                break;
+                            case CODE_CODE_C:
+                                codeSet = CODE_CODE_C;
+                                break;
+                            case CODE_STOP:
+                                done = true;
+                                break;
+                        }
                     }
-                }
-                break;
+                    break;
+                case CODE_CODE_B:
+                    if (code < 96) {
+                        if (shiftUpperMode == upperMode) {
+                            result.append((char) (' ' + code));
+                        } else {
+                            result.append((char) (' ' + code + 128));
+                        }
+                        shiftUpperMode = false;
+                    } else {
+                        if (code != CODE_STOP) {
+                            lastCharacterWasPrintable = false;
+                        }
+                        switch (code) {
+                            case CODE_FNC_1:
+                                if (convertFNC1) {
+                                    if (result.length() == 0) {
+                                        // GS1 specification 5.4.3.7. and 5.4.6.4. If the first char after the start code
+                                        // is FNC1 then this is GS1-128. We add the symbology identifier.
+                                        result.append("]C1");
+                                    } else {
+                                        // GS1 specification 5.4.7.5. Every subsequent FNC1 is returned as ASCII 29 (GS)
+                                        result.append((char) 29);
+                                    }
+                                }
+                                break;
+                            case CODE_FNC_2:
+                            case CODE_FNC_3:
+                                // do nothing?
+                                break;
+                            case CODE_FNC_4_B:
+                                if (!upperMode && shiftUpperMode) {
+                                    upperMode = true;
+                                    shiftUpperMode = false;
+                                } else if (upperMode && shiftUpperMode) {
+                                    upperMode = false;
+                                    shiftUpperMode = false;
+                                } else {
+                                    shiftUpperMode = true;
+                                }
+                                break;
+                            case CODE_SHIFT:
+                                isNextShifted = true;
+                                codeSet = CODE_CODE_A;
+                                break;
+                            case CODE_CODE_A:
+                                codeSet = CODE_CODE_A;
+                                break;
+                            case CODE_CODE_C:
+                                codeSet = CODE_CODE_C;
+                                break;
+                            case CODE_STOP:
+                                done = true;
+                                break;
+                        }
+                    }
+                    break;
+                case CODE_CODE_C:
+                    if (code < 100) {
+                        if (code < 10) {
+                            result.append('0');
+                        }
+                        result.append(code);
+                    } else {
+                        if (code != CODE_STOP) {
+                            lastCharacterWasPrintable = false;
+                        }
+                        switch (code) {
+                            case CODE_FNC_1:
+                                if (convertFNC1) {
+                                    if (result.length() == 0) {
+                                        // GS1 specification 5.4.3.7. and 5.4.6.4. If the first char after the start code
+                                        // is FNC1 then this is GS1-128. We add the symbology identifier.
+                                        result.append("]C1");
+                                    } else {
+                                        // GS1 specification 5.4.7.5. Every subsequent FNC1 is returned as ASCII 29 (GS)
+                                        result.append((char) 29);
+                                    }
+                                }
+                                break;
+                            case CODE_CODE_A:
+                                codeSet = CODE_CODE_A;
+                                break;
+                            case CODE_CODE_B:
+                                codeSet = CODE_CODE_B;
+                                break;
+                            case CODE_STOP:
+                                done = true;
+                                break;
+                        }
+                    }
+                    break;
             }
 
             // Unshift back to another code set if we were shifted
@@ -492,15 +483,13 @@ public final class Code128Reader extends OneDReader {
 
         int lastPatternSize = nextStart - lastStart;
 
-        // Check for ample whitespace following pattern, but, to do this we
-        // first need to remember that
-        // we fudged decoding CODE_STOP since it actually has 7 bars, not 6.
-        // There is a black bar left
-        // to read off. Would be slightly better to properly read. Here we just
-        // skip it:
+        // Check for ample whitespace following pattern, but, to do this we first need to remember that
+        // we fudged decoding CODE_STOP since it actually has 7 bars, not 6. There is a black bar left
+        // to read off. Would be slightly better to properly read. Here we just skip it:
         nextStart = row.getNextUnset(nextStart);
         if (!row.isRange(nextStart,
-                Math.min(row.getSize(), nextStart + (nextStart - lastStart) / 2), false)) {
+                Math.min(row.getSize(), nextStart + (nextStart - lastStart) / 2),
+                false)) {
             throw NotFoundException.getNotFoundInstance();
         }
 
@@ -518,10 +507,8 @@ public final class Code128Reader extends OneDReader {
             throw NotFoundException.getNotFoundInstance();
         }
 
-        // Only bother if the result had at least one character, and if the
-        // checksum digit happened to
-        // be a printable character. If it was just interpreted as a control
-        // code, nothing to remove.
+        // Only bother if the result had at least one character, and if the checksum digit happened to
+        // be a printable character. If it was just interpreted as a control code, nothing to remove.
         if (resultLength > 0 && lastCharacterWasPrintable) {
             if (codeSet == CODE_CODE_C) {
                 result.delete(resultLength - 2, resultLength);
@@ -530,7 +517,7 @@ public final class Code128Reader extends OneDReader {
             }
         }
 
-        float left = (float) (startPatternInfo[1] + startPatternInfo[0]) / 2.0f;
+        float left = (startPatternInfo[1] + startPatternInfo[0]) / 2.0f;
         float right = lastStart + lastPatternSize / 2.0f;
 
         int rawCodesSize = rawCodes.size();
@@ -539,9 +526,13 @@ public final class Code128Reader extends OneDReader {
             rawBytes[i] = rawCodes.get(i);
         }
 
-        return new Result(result.toString(), rawBytes,
-                new ResultPoint[] { new ResultPoint(left, (float) rowNumber),
-                        new ResultPoint(right, (float) rowNumber) }, BarcodeFormat.CODE_128);
+        return new Result(
+                result.toString(),
+                rawBytes,
+                new ResultPoint[]{
+                        new ResultPoint(left, rowNumber),
+                        new ResultPoint(right, rowNumber)},
+                BarcodeFormat.CODE_128);
 
     }
 

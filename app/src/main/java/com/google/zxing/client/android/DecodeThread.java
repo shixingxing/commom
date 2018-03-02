@@ -47,9 +47,11 @@ final class DecodeThread extends Thread {
     private Handler handler;
     private final CountDownLatch handlerInitLatch;
 
-    DecodeThread(CaptureActivity activity, Collection<BarcodeFormat> decodeFormats,
-            Map<DecodeHintType, ?> baseHints, String characterSet,
-            ResultPointCallback resultPointCallback) {
+    DecodeThread(CaptureActivity activity,
+                 Collection<BarcodeFormat> decodeFormats,
+                 Map<DecodeHintType, ?> baseHints,
+                 String characterSet,
+                 ResultPointCallback resultPointCallback) {
 
         this.activity = activity;
         handlerInitLatch = new CountDownLatch(1);
@@ -59,8 +61,7 @@ final class DecodeThread extends Thread {
             hints.putAll(baseHints);
         }
 
-        // The prefs can't change while the thread is running, so pick them up
-        // once here.
+        // The prefs can't change while the thread is running, so pick them up once here.
         if (decodeFormats == null || decodeFormats.isEmpty()) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
             decodeFormats = EnumSet.noneOf(BarcodeFormat.class);

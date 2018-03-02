@@ -28,14 +28,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * Represents a parsed result that encodes a calendar event at a certain time, optionally
+ * with attendees and a location.
+ *
  * @author Sean Owen
  */
 public final class CalendarParsedResult extends ParsedResult {
 
-    private static final Pattern RFC2445_DURATION = Pattern
-            .compile("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?");
-    private static final long[] RFC2445_DURATION_FIELD_UNITS = { 7 * 24 * 60 * 60 * 1000L, // 1
-                                                                                           // week
+    private static final Pattern RFC2445_DURATION =
+            Pattern.compile("P(?:(\\d+)W)?(?:(\\d+)D)?(?:T(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?)?");
+    private static final long[] RFC2445_DURATION_FIELD_UNITS = {
+            7 * 24 * 60 * 60 * 1000L, // 1 week
             24 * 60 * 60 * 1000L, // 1 day
             60 * 60 * 1000L, // 1 hour
             60 * 1000L, // 1 minute
@@ -45,9 +48,9 @@ public final class CalendarParsedResult extends ParsedResult {
     private static final Pattern DATE_TIME = Pattern.compile("[0-9]{8}(T[0-9]{6}Z?)?");
 
     private final String summary;
-    private final Date start;
+    private final long start;
     private final boolean startAllDay;
-    private final Date end;
+    private final long end;
     private final boolean endAllDay;
     private final String location;
     private final String organizer;
@@ -56,9 +59,16 @@ public final class CalendarParsedResult extends ParsedResult {
     private final double latitude;
     private final double longitude;
 
-    public CalendarParsedResult(String summary, String startString, String endString,
-            String durationString, String location, String organizer, String[] attendees,
-            String description, double latitude, double longitude) {
+    public CalendarParsedResult(String summary,
+                                String startString,
+                                String endString,
+                                String durationString,
+                                String location,
+                                String organizer,
+                                String[] attendees,
+                                String description,
+                                double latitude,
+                                double longitude) {
         super(ParsedResultType.CALENDAR);
         this.summary = summary;
 
@@ -70,7 +80,7 @@ public final class CalendarParsedResult extends ParsedResult {
 
         if (endString == null) {
             long durationMS = parseDurationMS(durationString);
-            end = durationMS < 0L ? null : new Date(start.getTime() + durationMS);
+            end = durationMS < 0L ? -1L : start + durationMS;
         } else {
             try {
                 this.end = parseDate(endString);
@@ -96,8 +106,18 @@ public final class CalendarParsedResult extends ParsedResult {
 
     /**
      * @return start time
+     * @deprecated use {@link #getStartTimestamp()}
      */
+    @Deprecated
     public Date getStart() {
+        return new Date(start);
+    }
+
+    /**
+     * @return start time
+     * @see #getEndTimestamp()
+     */
+    public long getStartTimestamp() {
         return start;
     }
 
@@ -110,9 +130,18 @@ public final class CalendarParsedResult extends ParsedResult {
 
     /**
      * @return event end {@link Date}, or {@code null} if event has no duration
-     * @see #getStart()
+     * @deprecated use {@link #getEndTimestamp()}
      */
+    @Deprecated
     public Date getEnd() {
+        return end < 0L ? null : new Date(end);
+    }
+
+    /**
+     * @return event end {@link Date}, or -1 if event has no duration
+     * @see #getStartTimestamp()
+     */
+    public long getEndTimestamp() {
         return end;
     }
 
@@ -161,50 +190,46 @@ public final class CalendarParsedResult extends ParsedResult {
     }
 
     /**
-     * Parses a string as a date. RFC 2445 allows the start and end fields to be
-     * of type DATE (e.g. 20081021) or DATE-TIME (e.g. 20081021T123000 for local
-     * time, or 20081021T123000Z for UTC).
+     * Parses a string as a date. RFC 2445 allows the start and end fields to be of type DATE (e.g. 20081021)
+     * or DATE-TIME (e.g. 20081021T123000 for local time, or 20081021T123000Z for UTC).
      *
-     * @param when
-     *            The string to parse
-     * @throws ParseException
-     *             if not able to parse as a date
+     * @param when The string to parse
+     * @throws ParseException if not able to parse as a date
      */
-    private static Date parseDate(String when) throws ParseException {
+    private static long parseDate(String when) throws ParseException {
         if (!DATE_TIME.matcher(when).matches()) {
             throw new ParseException(when, 0);
         }
         if (when.length() == 8) {
             // Show only year/month/day
-            return buildDateFormat().parse(when);
-        } else {
-            // The when string can be local time, or UTC if it ends with a Z
-            Date date;
-            if (when.length() == 16 && when.charAt(15) == 'Z') {
-                date = buildDateTimeFormat().parse(when.substring(0, 15));
-                Calendar calendar = new GregorianCalendar();
-                long milliseconds = date.getTime();
-                // Account for time zone difference
-                milliseconds += calendar.get(Calendar.ZONE_OFFSET);
-                // Might need to correct for daylight savings time, but use
-                // target time since
-                // now might be in DST but not then, or vice versa
-                calendar.setTime(new Date(milliseconds));
-                milliseconds += calendar.get(Calendar.DST_OFFSET);
-                date = new Date(milliseconds);
-            } else {
-                date = buildDateTimeFormat().parse(when);
-            }
-            return date;
+            DateFormat format = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
+            // For dates without a time, for purposes of interacting with Android, the resulting timestamp
+            // needs to be midnight of that day in GMT. See:
+            // http://code.google.com/p/android/issues/detail?id=8330
+            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+            return format.parse(when).getTime();
         }
+        // The when string can be local time, or UTC if it ends with a Z
+        if (when.length() == 16 && when.charAt(15) == 'Z') {
+            long milliseconds = parseDateTimeString(when.substring(0, 15));
+            Calendar calendar = new GregorianCalendar();
+            // Account for time zone difference
+            milliseconds += calendar.get(Calendar.ZONE_OFFSET);
+            // Might need to correct for daylight savings time, but use target time since
+            // now might be in DST but not then, or vice versa
+            calendar.setTime(new Date(milliseconds));
+            return milliseconds + calendar.get(Calendar.DST_OFFSET);
+        }
+        return parseDateTimeString(when);
     }
 
-    private static String format(boolean allDay, Date date) {
-        if (date == null) {
+    private static String format(boolean allDay, long date) {
+        if (date < 0L) {
             return null;
         }
-        DateFormat format = allDay ? DateFormat.getDateInstance(DateFormat.MEDIUM) : DateFormat
-                .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);
+        DateFormat format = allDay
+                ? DateFormat.getDateInstance(DateFormat.MEDIUM)
+                : DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM);
         return format.format(date);
     }
 
@@ -226,18 +251,9 @@ public final class CalendarParsedResult extends ParsedResult {
         return durationMS;
     }
 
-    private static DateFormat buildDateFormat() {
-        DateFormat format = new SimpleDateFormat("yyyyMMdd", Locale.ENGLISH);
-        // For dates without a time, for purposes of interacting with Android,
-        // the resulting timestamp
-        // needs to be midnight of that day in GMT. See:
-        // http://code.google.com/p/android/issues/detail?id=8330
-        format.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return format;
-    }
-
-    private static DateFormat buildDateTimeFormat() {
-        return new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.ENGLISH);
+    private static long parseDateTimeString(String dateTimeString) throws ParseException {
+        DateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.ENGLISH);
+        return format.parse(dateTimeString).getTime();
     }
 
 }

@@ -43,24 +43,22 @@ public final class MaxiCodeReader implements Reader {
 
     private final Decoder decoder = new Decoder();
 
-    /*
-     * Decoder getDecoder() { return decoder; }
-     */
+  /*
+  Decoder getDecoder() {
+    return decoder;
+  }
+   */
 
     /**
      * Locates and decodes a MaxiCode in an image.
      *
      * @return a String representing the content encoded by the MaxiCode
-     * @throws NotFoundException
-     *             if a MaxiCode cannot be found
-     * @throws FormatException
-     *             if a MaxiCode cannot be decoded
-     * @throws ChecksumException
-     *             if error correction fails
+     * @throws NotFoundException if a MaxiCode cannot be found
+     * @throws FormatException   if a MaxiCode cannot be decoded
+     * @throws ChecksumException if error correction fails
      */
     @Override
-    public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException,
-            FormatException {
+    public Result decode(BinaryBitmap image) throws NotFoundException, ChecksumException, FormatException {
         return decode(image, null);
     }
 
@@ -75,9 +73,7 @@ public final class MaxiCodeReader implements Reader {
             throw NotFoundException.getNotFoundInstance();
         }
 
-        ResultPoint[] points = NO_POINTS;
-        Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), points,
-                BarcodeFormat.MAXICODE);
+        Result result = new Result(decoderResult.getText(), decoderResult.getRawBytes(), NO_POINTS, BarcodeFormat.MAXICODE);
 
         String ecLevel = decoderResult.getECLevel();
         if (ecLevel != null) {
@@ -92,10 +88,10 @@ public final class MaxiCodeReader implements Reader {
     }
 
     /**
-     * This method detects a code in a "pure" image -- that is, pure monochrome
-     * image which contains only an unrotated, unskewed, image of a code, with
-     * some white border around it. This is a specialized method that works
-     * exceptionally fast in this special case.
+     * This method detects a code in a "pure" image -- that is, pure monochrome image
+     * which contains only an unrotated, unskewed, image of a code, with some white border
+     * around it. This is a specialized method that works exceptionally fast in this special
+     * case.
      *
      * @see com.google.zxing.datamatrix.DataMatrixReader#extractPureBits(BitMatrix)
      * @see com.google.zxing.qrcode.QRCodeReader#extractPureBits(BitMatrix)

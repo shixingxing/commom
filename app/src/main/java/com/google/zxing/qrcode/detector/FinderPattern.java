@@ -19,11 +19,9 @@ package com.google.zxing.qrcode.detector;
 import com.google.zxing.ResultPoint;
 
 /**
- * <p>
- * Encapsulates a finder pattern, which are the three square patterns found in
- * the corners of QR Codes. It also encapsulates a count of similar finder
- * patterns, as a convenience to the finder's bookkeeping.
- * </p>
+ * <p>Encapsulates a finder pattern, which are the three square patterns found in
+ * the corners of QR Codes. It also encapsulates a count of similar finder patterns,
+ * as a convenience to the finder's bookkeeping.</p>
  *
  * @author Sean Owen
  */
@@ -50,16 +48,15 @@ public final class FinderPattern extends ResultPoint {
         return count;
     }
 
-    /*
-     * void incrementCount() { this.count++; }
-     */
+  /*
+  void incrementCount() {
+    this.count++;
+  }
+   */
 
     /**
-     * <p>
-     * Determines if this finder pattern "about equals" a finder pattern at the
-     * stated position and size -- meaning, it is at nearly the same center with
-     * nearly the same size.
-     * </p>
+     * <p>Determines if this finder pattern "about equals" a finder pattern at the stated
+     * position and size -- meaning, it is at nearly the same center with nearly the same size.</p>
      */
     boolean aboutEquals(float moduleSize, float i, float j) {
         if (Math.abs(i - getY()) <= moduleSize && Math.abs(j - getX()) <= moduleSize) {
@@ -70,9 +67,9 @@ public final class FinderPattern extends ResultPoint {
     }
 
     /**
-     * Combines this object's current estimate of a finder pattern position and
-     * module size with a new estimate. It returns a new {@code FinderPattern}
-     * containing a weighted average based on count.
+     * Combines this object's current estimate of a finder pattern position and module size
+     * with a new estimate. It returns a new {@code FinderPattern} containing a weighted average
+     * based on count.
      */
     FinderPattern combineEstimate(float i, float j, float newModuleSize) {
         int combinedCount = count + 1;

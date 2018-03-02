@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
+
 package com.google.zxing.client.result;
 
+/**
+ * Represents a parsed result that encodes a Vehicle Identification Number (VIN).
+ */
 public final class VINParsedResult extends ParsedResult {
 
     private final String vin;
@@ -28,9 +32,15 @@ public final class VINParsedResult extends ParsedResult {
     private final char plantCode;
     private final String sequentialNumber;
 
-    public VINParsedResult(String vin, String worldManufacturerID, String vehicleDescriptorSection,
-            String vehicleIdentifierSection, String countryCode, String vehicleAttributes,
-            int modelYear, char plantCode, String sequentialNumber) {
+    public VINParsedResult(String vin,
+                           String worldManufacturerID,
+                           String vehicleDescriptorSection,
+                           String vehicleIdentifierSection,
+                           String countryCode,
+                           String vehicleAttributes,
+                           int modelYear,
+                           char plantCode,
+                           String sequentialNumber) {
         super(ParsedResultType.VIN);
         this.vin = vin;
         this.worldManufacturerID = worldManufacturerID;

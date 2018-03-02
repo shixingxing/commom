@@ -25,7 +25,7 @@ final class EdifactEncoder implements Encoder {
 
     @Override
     public void encode(EncoderContext context) {
-        // step F
+        //step F
         StringBuilder buffer = new StringBuilder();
         while (context.hasMoreCharacters()) {
             char c = context.getCurrentChar();
@@ -37,40 +37,37 @@ final class EdifactEncoder implements Encoder {
                 context.writeCodewords(encodeToCodewords(buffer, 0));
                 buffer.delete(0, 4);
 
-                int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos,
-                        getEncodingMode());
+                int newMode = HighLevelEncoder.lookAheadTest(context.getMessage(), context.pos, getEncodingMode());
                 if (newMode != getEncodingMode()) {
+                    // Return to ASCII encodation, which will actually handle latch to new mode
                     context.signalEncoderChange(HighLevelEncoder.ASCII_ENCODATION);
                     break;
                 }
             }
         }
-        buffer.append((char) 31); // Unlatch
+        buffer.append((char) 31); //Unlatch
         handleEOD(context, buffer);
     }
 
     /**
      * Handle "end of data" situations
      *
-     * @param context
-     *            the encoder context
-     * @param buffer
-     *            the buffer with the remaining encoded characters
+     * @param context the encoder context
+     * @param buffer  the buffer with the remaining encoded characters
      */
     private static void handleEOD(EncoderContext context, CharSequence buffer) {
         try {
             int count = buffer.length();
             if (count == 0) {
-                return; // Already finished
+                return; //Already finished
             }
             if (count == 1) {
-                // Only an unlatch at the end
+                //Only an unlatch at the end
                 context.updateSymbolInfo();
-                int available = context.getSymbolInfo().getDataCapacity()
-                        - context.getCodewordCount();
+                int available = context.getSymbolInfo().getDataCapacity() - context.getCodewordCount();
                 int remaining = context.getRemainingCharacters();
-                if (remaining == 0 && available <= 2) {
-                    return; // No unlatch
+                if (remaining <= available && available <= 2) {
+                    return; //No unlatch
                 }
             }
 
@@ -84,13 +81,11 @@ final class EdifactEncoder implements Encoder {
 
             if (restChars <= 2) {
                 context.updateSymbolInfo(context.getCodewordCount() + restChars);
-                int available = context.getSymbolInfo().getDataCapacity()
-                        - context.getCodewordCount();
+                int available = context.getSymbolInfo().getDataCapacity() - context.getCodewordCount();
                 if (available >= 3) {
                     restInAscii = false;
                     context.updateSymbolInfo(context.getCodewordCount() + encoded.length());
-                    // available = context.symbolInfo.dataCapacity -
-                    // context.getCodewordCount();
+                    //available = context.symbolInfo.dataCapacity - context.getCodewordCount();
                 }
             }
 
