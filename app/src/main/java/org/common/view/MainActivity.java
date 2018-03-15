@@ -50,6 +50,9 @@ public class MainActivity extends BaseActivity implements AdapterView.OnItemClic
                 startActivity(intent);
                 break;
             case 1:
+                Intent intentR = new Intent();
+                intentR.setClass(MainActivity.this, ReadContactActivity.class);
+                startActivity(intentR);
                 break;
             case 2:
                 Intent intentQr = new Intent();
