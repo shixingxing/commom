@@ -1,4 +1,4 @@
-package org.commom.library.activity;
+package org.common.library.activity;
 
 import android.support.v7.app.AppCompatActivity;
 

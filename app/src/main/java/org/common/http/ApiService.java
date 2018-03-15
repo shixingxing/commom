@@ -1,6 +1,6 @@
 package org.common.http;
 
-import org.commom.library.http.BaseHttpService;
+import org.common.library.http.BaseHttpService;
 
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;

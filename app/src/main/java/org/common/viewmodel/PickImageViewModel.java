@@ -1,4 +1,4 @@
-package org.commom.library.viewmodel;
+package org.common.viewmodel;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -14,10 +14,14 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.v4.content.FileProvider;
 import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+
+import org.common.BuildConfig;
+import org.common.library.viewmodel.MyObservable;
 
 import java.io.File;
 import java.util.Calendar;
@@ -60,7 +64,19 @@ public class PickImageViewModel extends MyObservable {
         long date = Calendar.getInstance().getTimeInMillis();
         currentFilePath = Environment.getExternalStorageDirectory()
                 + File.separator + "DCIM" + File.separator + "Camera" + File.separator + date + ".jpg";
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(currentFilePath)));
+        File apkFile = new File(currentFilePath);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Uri contentUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".provider", apkFile);
+//            intent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, contentUri);
+        } else {
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(apkFile));
+
+//            intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
+//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
         ((Activity) context).startActivityForResult(intent, REQUEST_CODE_TAKE_PICTURE);
 
     }

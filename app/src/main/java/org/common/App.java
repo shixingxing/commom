@@ -10,7 +10,7 @@ import rx.schedulers.Schedulers;
 /**
  * Created by peter on 2016/3/28.
  */
-public class App extends org.commom.library.App {
+public class App extends org.common.library.App {
 
     private Scheduler defaultSubscribeScheduler;
 

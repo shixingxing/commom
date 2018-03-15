@@ -1,14 +1,14 @@
-package org.commom.library.view;
+package org.common.view;
 
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 
-import org.commom.library.R;
-import org.commom.library.activity.BaseActivity;
-import org.commom.library.databinding.PickImageActivityBinding;
-import org.commom.library.viewmodel.PickImageViewModel;
+import org.common.R;
+import org.common.databinding.PickImageActivityBinding;
+import org.common.library.activity.BaseActivity;
+import org.common.viewmodel.PickImageViewModel;
 
 /**
  * Created by peter on 3/1/2018.

@@ -9,10 +9,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 
-import org.commom.library.activity.BaseActivity;
-import org.commom.library.view.PickImageActivity;
 import org.common.R;
 import org.common.databinding.ActivityMainBinding;
+import org.common.library.activity.BaseActivity;
 import org.common.qrcode.CaptureActivity;
 import org.common.viewmodel.MainViewModel;
 

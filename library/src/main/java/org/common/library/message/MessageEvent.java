@@ -1,4 +1,4 @@
-package org.commom.library.message;
+package org.common.library.message;
 
 /**
  * Created by peter on 2016/3/28.

@@ -1,4 +1,4 @@
-package org.commom.library.viewmodel;
+package org.common.library.viewmodel;
 
 /**
  * Created by peter on 2016/3/25.

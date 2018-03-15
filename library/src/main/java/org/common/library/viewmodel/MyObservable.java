@@ -1,4 +1,4 @@
-package org.commom.library.viewmodel;
+package org.common.library.viewmodel;
 
 import android.content.Context;
 import android.databinding.BaseObservable;
