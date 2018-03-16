@@ -2,9 +2,12 @@ package org.common.view
 
 import android.databinding.DataBindingUtil
 import android.os.Bundle
+import android.support.v7.widget.LinearLayoutManager
 import org.common.R
+import org.common.adapter.ContactAdapter
 import org.common.databinding.ReadContactActivityBinding
 import org.common.library.activity.BaseActivity
+import org.common.model.AddressBook
 import org.common.viewmodel.ReadContactViewModel
 
 /**
@@ -15,6 +18,7 @@ class ReadContactActivity : BaseActivity(), ReadContactViewModel.ReadContactInte
 
     lateinit var viewModel: ReadContactViewModel
     lateinit var binding: ReadContactActivityBinding
+    private val adapter: ContactAdapter = ContactAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +27,19 @@ class ReadContactActivity : BaseActivity(), ReadContactViewModel.ReadContactInte
         viewModel = ReadContactViewModel(this, this)
         binding.viewModel = viewModel
 
+        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true)
+        binding.recyclerView.adapter = adapter
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getContact()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.destroy()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -35,5 +52,10 @@ class ReadContactActivity : BaseActivity(), ReadContactViewModel.ReadContactInte
 
     override fun contactPermissionGranted() {
         binding.viewFlipper.displayedChild = 0
+    }
+
+    override fun gotContact(addressBooks: ArrayList<AddressBook>) {
+        adapter.contacts = addressBooks
+        adapter.notifyDataSetChanged()
     }
 }

@@ -3,7 +3,6 @@ package org.common.viewmodel
 import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -16,7 +15,6 @@ import android.view.View
 import org.common.R
 import org.common.library.viewmodel.MyObservable
 import org.common.model.AddressBook
-import java.util.*
 
 
 /**
@@ -32,10 +30,13 @@ class ReadContactViewModel : MyObservable {
 
         readContactInterface = listener
 
+    }
+
+    fun getContact() {
         if (context?.let { ActivityCompat.checkSelfPermission(it, android.Manifest.permission.READ_CONTACTS) } == PackageManager.PERMISSION_GRANTED) {
 
             //got permission
-
+            readContactInterface.gotContact(readContact())
         } else {
             //not got permission
             requestPermission()
@@ -51,7 +52,7 @@ class ReadContactViewModel : MyObservable {
                         Manifest.permission.READ_CONTACTS)) {
             val alertDialog = AlertDialog.Builder(context)
             alertDialog.setMessage(R.string.not_have_permission_to_read_contact)
-            alertDialog.setPositiveButton(R.string.ok, DialogInterface.OnClickListener { dialog, which -> goSetting() })
+            alertDialog.setPositiveButton(R.string.ok, { _, _ -> goSetting() })
             alertDialog.setNegativeButton(R.string.cancel, null)
             alertDialog.create().show()
 
@@ -86,12 +87,14 @@ class ReadContactViewModel : MyObservable {
                     // contacts-related task you need to do.
                     readContactInterface.contactPermissionGranted()
 
+                    readContactInterface.gotContact(readContact())
 
                 } else {
 
                     val alertDialog = AlertDialog.Builder(context)
                     alertDialog.setMessage(R.string.not_have_permission_to_read_contact)
-                    alertDialog.setPositiveButton(R.string.ok, null)
+                    alertDialog.setPositiveButton(R.string.ok, { _, _ -> goSetting() })
+                    alertDialog.setNegativeButton(R.string.cancel, null)
                     alertDialog.create().show()
 
                     readContactInterface.contactPermissionDenied()
@@ -102,27 +105,31 @@ class ReadContactViewModel : MyObservable {
         // permissions this app might request
     }
 
-    fun readContact(): ArrayList<AddressBook>? {
+    private fun readContact(): ArrayList<AddressBook> {
         val addressBooks: ArrayList<AddressBook> = ArrayList()
         val contentResolver = context.contentResolver
         var c: Cursor? = null
         try {
             if (ActivityCompat.checkSelfPermission(context,
                             Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-                return null
+                return addressBooks
             }
             val projection = arrayOf(ContactsContract.Data.LOOKUP_KEY, ContactsContract.Data.DATA2, ContactsContract.Data.DATA3)
             val where = ContactsContract.Data.MIMETYPE + "='" + ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE + "'"
             c = contentResolver.query(ContactsContract.Data.CONTENT_URI, projection, where, null, null)
 
-            c?.let {
+            if (c != null) {
                 var lookupKey: String
-                var firstName: String
-                var lastName: String
+                var firstName: String?
+                var lastName: String?
+                val lookupKeyIndex = c.getColumnIndexOrThrow(ContactsContract.Data.LOOKUP_KEY)
+                val firstNameIndex = c.getColumnIndexOrThrow(ContactsContract.Data.DATA2)
+                val lastNameIndex = c.getColumnIndexOrThrow(ContactsContract.Data.DATA3)
                 while (c.moveToNext()) {
-                    lookupKey = c.getString(c.getColumnIndex(ContactsContract.Data.LOOKUP_KEY))
-                    firstName = c.getString(c.getColumnIndex(ContactsContract.Data.DATA2))
-                    lastName = c.getString(c.getColumnIndex(ContactsContract.Data.DATA3))
+
+                    lookupKey = c.getString(lookupKeyIndex)
+                    firstName = c.getString(firstNameIndex)
+                    lastName = c.getString(lastNameIndex)
 
 
                     val emailC = contentResolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
@@ -130,20 +137,19 @@ class ReadContactViewModel : MyObservable {
                             ContactsContract.CommonDataKinds.Email.LOOKUP_KEY + " = ?",
                             arrayOf(lookupKey), null)
 
-                    if (emailC!!.count == 0) {
-                        emailC!!.close()
-                        continue
-                    }
                     val book = AddressBook()
                     book.firstName = firstName
                     book.lastName = lastName
                     val emails = ArrayList<String>()
-                    while (emailC!!.moveToNext()) {
-                        val email = emailC!!.getString(emailC!!.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS))
-                        emails.add(email)
+                    if (emailC != null) {
+                        while (emailC.moveToNext()) {
+                            val email = emailC.getString(emailC.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS))
+                            emails.add(email)
+                        }
                     }
+
                     book.emails = emails
-                    addressBooks!!.add(book)
+                    addressBooks.add(book)
                     emailC!!.close()
 
                 }
@@ -151,11 +157,9 @@ class ReadContactViewModel : MyObservable {
 
             }
 
-
         } catch (e: Exception) {
             e.printStackTrace()
             c?.close()
-            return null
         }
 
         return addressBooks
@@ -164,5 +168,6 @@ class ReadContactViewModel : MyObservable {
     interface ReadContactInterface {
         fun contactPermissionDenied()
         fun contactPermissionGranted()
+        fun gotContact(addressBooks: ArrayList<AddressBook>)
     }
 }

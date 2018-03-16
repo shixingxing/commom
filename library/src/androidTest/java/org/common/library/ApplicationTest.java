@@ -1,4 +1,4 @@
-package org.commom.library;
+package org.common.library;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
