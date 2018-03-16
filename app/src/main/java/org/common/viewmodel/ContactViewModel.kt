@@ -9,14 +9,18 @@ import org.common.model.AddressBook
  */
 class ContactViewModel : MyObservable {
 
-     var addressBook: AddressBook
+    var addressBook: AddressBook
 
     constructor(context: Context, addressBook: AddressBook) : super(context) {
         this.addressBook = addressBook
     }
 
     public fun getName(): String {
-        return addressBook.firstName + " " + addressBook.lastName
+        val nameBuilder = StringBuilder()
+        addressBook.firstName?.let { nameBuilder.append(it) }
+        nameBuilder.append(" ")
+        addressBook.lastName?.let { nameBuilder.append(it) }
+        return nameBuilder.toString()
     }
 
     public fun getEmailAddress(): String {
