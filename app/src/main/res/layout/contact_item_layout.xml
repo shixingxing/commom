@@ -20,6 +20,12 @@
             android:text="@{viewModel.name}" />
 
         <TextView
+            android:id="@+id/phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@{viewModel.phone}" />
+
+        <TextView
             android:id="@+id/email_address"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

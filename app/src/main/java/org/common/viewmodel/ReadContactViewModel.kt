@@ -149,11 +149,24 @@ class ReadContactViewModel : MyObservable {
                     }
 
                     book.emails = emails
-                    addressBooks.add(book)
-                    emailC!!.close()
+                    emailC?.close()
 
+                    val phones = ArrayList<String>()
+                    val phoneC = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+                            ContactsContract.CommonDataKinds.Phone.LOOKUP_KEY + " = ?", arrayOf(lookupKey), null)
+                    if (phoneC != null) {
+                        while (phoneC.moveToNext()) {
+                            val phone = phoneC.getString(phoneC.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                            phones.add(phone)
+                        }
+                    }
+                    book.phones = phones
+                    phoneC?.close()
+
+                    addressBooks.add(book)
                 }
-                c!!.close()
+                c?.close()
 
             }
 

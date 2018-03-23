@@ -30,4 +30,12 @@ class ContactViewModel : MyObservable {
         }
         return email
     }
+
+    public fun getPhone(): String {
+        var phone = ""
+        addressBook.phones?.forEach { p ->
+            phone += p
+        }
+        return phone
+    }
 }
